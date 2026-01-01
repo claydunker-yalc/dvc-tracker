@@ -44,17 +44,18 @@
         .tab-content { display: none; padding: 20px; }
         .tab-content.active { display: block; }
 
-        /* Dashboard & Points */
         .dashboard-contract-card { background: white; color: #333; border-radius: 8px; margin-bottom: 15px; border-left: 12px solid var(--sign-blue); box-shadow: 0 4px 10px rgba(0,0,0,0.3); overflow: hidden; }
         .card-header { padding: 10px 15px; background: #f8f9fa; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; font-weight: bold; }
         .point-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; text-align: center; padding: 12px 5px; }
         .point-val { font-family: 'UniversBold'; font-size: 1.3rem; color: var(--sign-purple); display: block; }
         .point-label { font-size: 0.6rem; color: #666; text-transform: uppercase; }
 
-        /* Plans UI */
         .plan-day-card { background: white; color: #333; border-radius: 8px; margin-bottom: 15px; padding: 15px; border-left: 10px solid var(--sign-red); box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
-        .plan-day-card h4 { margin: 0 0 10px 0; color: var(--sign-purple); font-family: 'UniversBold'; border-bottom: 2px solid #eee; display: flex; justify-content: space-between; }
+        .plan-day-card h4 { margin: 0 0 10px 0; color: var(--sign-purple); font-family: 'UniversBold'; border-bottom: 2px solid #eee; display: flex; justify-content: space-between; align-items: center; }
         
+        .day-header-box { background: #f0f4f8; padding: 10px; border-radius: 6px; margin-bottom: 12px; border: 1px solid #d1d9e6; }
+        .day-header-view { font-family: 'UniversBold'; color: var(--sign-blue); font-size: 1.1rem; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+
         .activity-row { background: #f9f9f9; border: 1px solid #ddd; border-radius: 4px; padding: 8px; margin-bottom: 8px; display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; }
         .activity-time { width: 90px; font-weight: bold; border: none; background: transparent; }
         .activity-desc { border: none; background: transparent; font-size: 0.9rem; width: 100%; }
@@ -65,15 +66,17 @@
         .view-item { display: flex; gap: 10px; margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px dashed #eee; align-items: baseline; }
         .view-time { color: var(--sign-blue); font-family: 'UniversBold'; font-size: 0.85rem; min-width: 70px; }
 
-        /* General Elements */
         .disney-button { background: var(--sign-yellow); color: #333; border: none; padding: 15px; font-family: 'UniversBold'; cursor: pointer; text-transform: uppercase; width: 100%; border-radius: 4px; margin-bottom: 10px; }
         .sync-btn { background: var(--sign-red); color: white; border: 3px solid var(--sign-yellow); margin-top: 10px; }
         .toggle-box { display: flex; gap: 5px; margin-bottom: 15px; }
         .toggle-item { flex: 1; padding: 10px; text-align: center; background: rgba(0,0,0,0.2); color: white; cursor: pointer; border-radius: 4px; font-size: 0.75rem; font-family: 'UniversBold'; }
         .toggle-item.active { background: var(--sign-yellow); color: #333; }
         
-        input, select { padding: 10px; border-radius: 4px; border: 1px solid #ccc; font-family: 'UniversRegular'; }
+        input, select { padding: 10px; border-radius: 4px; border: 1px solid #ccc; font-family: 'UniversRegular'; box-sizing: border-box; }
         .trip-card { background: var(--sign-yellow); color: #222; padding: 12px; border-radius: 4px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; font-family: 'UniversBold'; }
+        .progress-container { background: #eee; height: 10px; width: 100%; }
+        .progress-fill { background: var(--sign-blue); height: 100%; }
+        .expiration-alert { background: #fff3cd; color: #856404; font-size: 0.7rem; padding: 8px; text-align: center; font-family: 'UniversBold'; border-top: 1px solid #ffeeba; }
     </style>
 </head>
 <body>
@@ -198,14 +201,16 @@
         document.getElementById('planArea').style.display = 'block';
         container.innerHTML = '';
 
-        if(!data.plans[tId]) data.plans[tId] = {};
+        if(!data.plans[tId]) data.plans[tId] = { days: {} };
+        if(!data.plans[tId].days) data.plans[tId].days = {};
 
         let start = new Date(trip.start + "T00:00:00");
         let end = new Date(trip.end + "T00:00:00");
 
         while(start <= end) {
             const dateStr = start.toISOString().split('T')[0];
-            const dayPlans = data.plans[tId][dateStr] || [];
+            const dayConfig = data.plans[tId].days[dateStr] || { type: '', location: '' };
+            const dayPlans = data.plans[tId][dateStr + "_acts"] || [];
             
             dayPlans.sort((a,b) => a.time.localeCompare(b.time));
 
@@ -216,6 +221,42 @@
                 </h4>`;
 
             if(planMode === 'edit') {
+                html += `
+                <div class="day-header-box">
+                    <select style="margin-bottom:5px;" onchange="updateDayHeader('${tId}','${dateStr}','type',this.value)">
+                        <option value="" ${dayConfig.type === '' ? 'selected' : ''}>-- Select Day Type --</option>
+                        <option value="Park Day" ${dayConfig.type === 'Park Day' ? 'selected' : ''}>Park Day</option>
+                        <option value="Resort Day" ${dayConfig.type === 'Resort Day' ? 'selected' : ''}>Resort Day</option>
+                    </select>`;
+
+                if(dayConfig.type === 'Park Day') {
+                    html += `<select onchange="updateDayHeader('${tId}','${dateStr}','location',this.value)">
+                        <option value="" ${dayConfig.location === '' ? 'selected' : ''}>-- Select Park --</option>
+                        <option value="Magic Kingdom" ${dayConfig.location === 'Magic Kingdom' ? 'selected' : ''}>Magic Kingdom</option>
+                        <option value="EPCOT" ${dayConfig.location === 'EPCOT' ? 'selected' : ''}>EPCOT</option>
+                        <option value="Hollywood Studios" ${dayConfig.location === 'Hollywood Studios' ? 'selected' : ''}>Hollywood Studios</option>
+                        <option value="Animal Kingdom" ${dayConfig.location === 'Animal Kingdom' ? 'selected' : ''}>Animal Kingdom</option>
+                        <option value="Typhoon Lagoon" ${dayConfig.location === 'Typhoon Lagoon' ? 'selected' : ''}>Typhoon Lagoon</option>
+                        <option value="Blizzard Beach" ${dayConfig.location === 'Blizzard Beach' ? 'selected' : ''}>Blizzard Beach</option>
+                    </select>`;
+                } else if(dayConfig.type === 'Resort Day') {
+                    html += `<select onchange="updateDayHeader('${tId}','${dateStr}','location',this.value)">
+                        <option value="" ${dayConfig.location === '' ? 'selected' : ''}>-- Select Resort --</option>
+                        <option value="Animal Kingdom Lodge" ${dayConfig.location === 'Animal Kingdom Lodge' ? 'selected' : ''}>Animal Kingdom Lodge</option>
+                        <option value="Beach Club" ${dayConfig.location === 'Beach Club' ? 'selected' : ''}>Beach Club</option>
+                        <option value="BoardWalk" ${dayConfig.location === 'BoardWalk' ? 'selected' : ''}>BoardWalk</option>
+                        <option value="Grand Floridian" ${dayConfig.location === 'Grand Floridian' ? 'selected' : ''}>Grand Floridian</option>
+                        <option value="Old Key West" ${dayConfig.location === 'Old Key West' ? 'selected' : ''}>Old Key West</option>
+                        <option value="Polynesian" ${dayConfig.location === 'Polynesian' ? 'selected' : ''}>Polynesian</option>
+                        <option value="Riviera" ${dayConfig.location === 'Riviera' ? 'selected' : ''}>Riviera</option>
+                        <option value="Saratoga Springs" ${dayConfig.location === 'Saratoga Springs' ? 'selected' : ''}>Saratoga Springs</option>
+                        <option value="Vero Beach" ${dayConfig.location === 'Vero Beach' ? 'selected' : ''}>Vero Beach</option>
+                        <option value="Contemporary/Bay Lake" ${dayConfig.location === 'Contemporary/Bay Lake' ? 'selected' : ''}>Contemporary/Bay Lake</option>
+                        <option value="Wilderness Lodge" ${dayConfig.location === 'Wilderness Lodge' ? 'selected' : ''}>Wilderness Lodge</option>
+                    </select>`;
+                }
+                html += `</div>`;
+
                 dayPlans.forEach((act, idx) => {
                     html += `
                         <div class="activity-row">
@@ -225,12 +266,14 @@
                         </div>`;
                 });
             } else {
+                if(dayConfig.type && dayConfig.location) {
+                    html += `<div class="day-header-view">${dayConfig.type === 'Park Day' ? '🎡' : '🏨'} ${dayConfig.location}</div>`;
+                }
                 dayPlans.forEach(act => {
                     const timeParts = act.time.split(':');
                     const timeDisp = new Date(2000, 0, 1, timeParts[0], timeParts[1]).toLocaleTimeString([], {hour: 'numeric', minute:'2-digit'});
                     html += `<div class="view-item"><span class="view-time">${timeDisp}</span><span>${act.desc}</span></div>`;
                 });
-                if(dayPlans.length === 0) html += `<div style="color:#999; font-size:0.8rem; font-style:italic">No plans added yet.</div>`;
             }
 
             html += `</div>`;
@@ -239,19 +282,28 @@
         }
     }
 
+    function updateDayHeader(tId, date, key, val) {
+        if(!data.plans[tId].days[date]) data.plans[tId].days[date] = { type: '', location: '' };
+        data.plans[tId].days[date][key] = val;
+        if(key === 'type') data.plans[tId].days[date].location = ''; 
+        localStorage.setItem('dvc_data_final', JSON.stringify(data));
+        loadTripPlans();
+    }
+
     function addActivity(tId, date) {
-        if(!data.plans[tId][date]) data.plans[tId][date] = [];
-        data.plans[tId][date].push({ time: '12:00', desc: '' });
+        const key = date + "_acts";
+        if(!data.plans[tId][key]) data.plans[tId][key] = [];
+        data.plans[tId][key].push({ time: '12:00', desc: '' });
         loadTripPlans();
     }
 
     function updateActivity(tId, date, idx, key, val) {
-        data.plans[tId][date][idx][key] = val;
+        data.plans[tId][date + "_acts"][idx][key] = val;
         localStorage.setItem('dvc_data_final', JSON.stringify(data));
     }
 
     function deleteActivity(tId, date, idx) {
-        data.plans[tId][date].splice(idx, 1);
+        data.plans[tId][date + "_acts"].splice(idx, 1);
         loadTripPlans();
     }
 
@@ -326,24 +378,13 @@
 
         document.getElementById('grandTotal').innerText = `TOTAL: ${totalPts} PTS`;
         const sorted = data.trips.sort((a,b) => new Date(a.start + "T00:00:00") - new Date(b.start + "T00:00:00"));
-        
-        // Timezone Fix: Normalize today to midnight for comparison
-        const todayLocal = new Date();
-        todayLocal.setHours(0, 0, 0, 0);
+        const todayLocal = new Date(); todayLocal.setHours(0,0,0,0);
 
         sorted.forEach((t, index) => {
             const s = new Date(t.start + "T00:00:00");
             const e = new Date(t.end + "T00:00:00");
-            
             if (index === 0 && todayLocal <= e) {
-                let status;
-                if (todayLocal < s) {
-                    const diffTime = s - todayLocal;
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                    status = `${diffDays} DAYS UNTIL`;
-                } else {
-                    status = "WELCOME HOME!";
-                }
+                let status = (todayLocal < s) ? `${Math.ceil((s - todayLocal) / (1000*60*60*24))} DAYS UNTIL` : "WELCOME HOME!";
                 nextTripDiv.innerHTML = `<div class="trip-card"><div><strong>${t.name}</strong><br><small>${t.resort}</small></div><div>${status}</div></div>`;
             }
             document.getElementById('tripManager').innerHTML += `<div class="trip-card"><div>${t.name} (${t.start})</div><button onclick="deleteTrip(${t.id})" style="background:none;border:none;color:red;font-weight:bold">X</button></div>`;
