@@ -59,7 +59,6 @@
 
         .total-points-sign { font-family: 'UniversBold'; font-size: 2.5rem; color: var(--sign-yellow); text-align: center; margin-bottom: 20px; }
         
-        /* Dashboard Card Styling */
         .dashboard-contract-card {
             background: white;
             color: #333;
@@ -77,14 +76,12 @@
         .point-val { font-family: 'UniversBold'; font-size: 1.4rem; color: var(--sign-purple); display: block; }
         .point-label { font-size: 0.6rem; color: #666; text-transform: uppercase; font-weight: bold; }
 
-        /* Progress Bar */
         .progress-container { background: #eee; height: 10px; width: 100%; position: relative; }
         .progress-fill { background: var(--sign-blue); height: 100%; transition: width 0.5s ease-in-out; }
         .progress-fill.warning { background: var(--sign-red); }
         
         .expiration-alert { background: #fff3cd; color: #856404; font-size: 0.7rem; padding: 8px; text-align: center; font-family: 'UniversBold'; border-top: 1px solid #ffeeba; }
 
-        /* General UI Elements */
         .summary-card { background: white; color: #333; border-radius: 4px; margin-bottom: 15px; padding: 18px; border-left: 12px solid var(--sign-blue); }
         .trip-card { background: var(--sign-yellow); color: #222; padding: 14px; border-radius: 4px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; font-family: 'UniversBold'; }
         .footer-red { background-color: var(--sign-red); padding: 15px; text-align: center; font-family: 'UniversBold'; font-size: 1.1rem; color: var(--sign-yellow); letter-spacing: 2px; text-transform: uppercase; }
@@ -292,27 +289,28 @@
         syncStamp.innerText = data.lastSync ? "Cloud Updated: " + data.lastSync : "Check Sync Status";
 
         data.contracts.forEach(c => {
-            let usedTracker = (c.used || 0);
+            // THE MATH LOGIC
+            // 1. Banked points: Total entered minus any Used points
+            let remainingBanked = Math.max(0, (c.banked || 0) - (c.used || 0));
             
-            // Logic: Subtract from Banked First
-            let remainingBanked = Math.max(0, (c.banked || 0) - usedTracker);
-            usedTracker = Math.max(0, usedTracker - (c.banked || 0));
-
-            // Subtract from Current (Annual) Second
-            let remainingCurrent = Math.max(0, c.annual - usedTracker);
-            usedTracker = Math.max(0, usedTracker - c.annual);
-
-            // Subtract from Future (Borrowing) Third
-            let remainingFuture = Math.max(0, c.annual - usedTracker);
+            // 2. Used points remaining after clearing out Banked
+            let leftoverUsed = Math.max(0, (c.used || 0) - (c.banked || 0));
             
-            let currentContractTotal = remainingBanked + remainingCurrent + remainingFuture;
-            totalPts += currentContractTotal;
+            // 3. Current points: Annual minus leftover used points
+            let remainingCurrent = Math.max(0, c.annual - leftoverUsed);
+            
+            // 4. Future points: Annual minus any points borrowed into Current
+            let remainingFuture = Math.max(0, c.annual - (c.borrowed || 0));
+            
+            // Grand total for this specific contract
+            let contractBalance = remainingBanked + remainingCurrent + remainingFuture;
+            totalPts += contractBalance;
 
             const uyInfo = getUYExpiration(c.uy);
             
-            // Progress Bar Logic (Based on how much of BANKED + CURRENT is gone)
-            const availableToday = (c.banked || 0) + c.annual;
-            const usePercent = availableToday > 0 ? Math.min(((c.used || 0) / availableToday) * 100, 100) : 0;
+            // Progress Bar Logic (Based on combined Banked + Current buckets)
+            const availableInCurrentBucket = (c.banked || 0) + c.annual;
+            const usePercent = availableInCurrentBucket > 0 ? Math.min(((c.used || 0) / availableInCurrentBucket) * 100, 100) : 0;
             const barClass = usePercent > 90 ? "progress-fill warning" : "progress-fill";
 
             summary.innerHTML += `
