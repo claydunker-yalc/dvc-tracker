@@ -271,7 +271,10 @@
                 }
                 dayPlans.forEach(act => {
                     const timeParts = act.time.split(':');
-                    const timeDisp = new Date(2000, 0, 1, timeParts[0], timeParts[1]).toLocaleTimeString([], {hour: 'numeric', minute:'2-digit'});
+                    const hour = parseInt(timeParts[0]);
+                    const suffix = hour >= 12 ? 'PM' : 'AM';
+                    const hour12 = hour % 12 || 12;
+                    const timeDisp = hour12 + ":" + timeParts[1] + " " + suffix;
                     html += `<div class="view-item"><span class="view-time">${timeDisp}</span><span>${act.desc}</span></div>`;
                 });
             }
@@ -334,10 +337,14 @@
         const summary = document.getElementById('contractSummary');
         const editor = document.getElementById('contractEditor');
         const nextTripDiv = document.getElementById('nextTripDisplay');
+        const tripList = document.getElementById('tripManager');
         const syncStamp = document.getElementById('lastSync');
         let totalPts = 0;
 
-        summary.innerHTML = ''; editor.innerHTML = ''; nextTripDiv.innerHTML = '';
+        summary.innerHTML = ''; 
+        editor.innerHTML = ''; 
+        nextTripDiv.innerHTML = '';
+        tripList.innerHTML = '';
         syncStamp.innerText = data.lastSync ? "Cloud Updated: " + data.lastSync : "Check Sync Status";
 
         data.contracts.forEach(c => {
@@ -387,7 +394,7 @@
                 let status = (todayLocal < s) ? `${Math.ceil((s - todayLocal) / (1000*60*60*24))} DAYS UNTIL` : "WELCOME HOME!";
                 nextTripDiv.innerHTML = `<div class="trip-card"><div><strong>${t.name}</strong><br><small>${t.resort}</small></div><div>${status}</div></div>`;
             }
-            document.getElementById('tripManager').innerHTML += `<div class="trip-card"><div>${t.name} (${t.start})</div><button onclick="deleteTrip(${t.id})" style="background:none;border:none;color:red;font-weight:bold">X</button></div>`;
+            tripList.innerHTML += `<div class="trip-card"><div>${t.name} (${t.start})</div><button onclick="deleteTrip(${t.id})" style="background:none;border:none;color:red;font-weight:bold">X</button></div>`;
         });
     }
 
