@@ -39,7 +39,7 @@
         .tab-content { display: none; padding: 20px; }
         .tab-content.active { display: block; }
 
-        /* General Cards */
+        /* Dashboard & General Cards */
         .dashboard-contract-card { background: white; color: #333; border-radius: 8px; margin-bottom: 15px; border-left: 12px solid var(--sign-blue); box-shadow: 0 4px 10px rgba(0,0,0,0.3); overflow: hidden; }
         .card-header { padding: 10px 15px; background: #f8f9fa; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; font-weight: bold; }
         .point-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; text-align: center; padding: 12px 5px; }
@@ -93,6 +93,7 @@
     <div id="home" class="tab-content active">
         <div id="grandTotal" style="font-size: 2.5rem; color: var(--sign-yellow); text-align: center; margin-bottom: 20px; font-family: 'UniversBold';">TOTAL: 0 PTS</div>
         <div id="nextTripDisplay"></div>
+        <h3 style="border-bottom: 2px solid rgba(255,255,255,0.2); padding-bottom: 8px;">REMAINING BY CYCLE</h3>
         <div id="contractSummary"></div>
     </div>
 
@@ -146,7 +147,6 @@
             </div>
 
             <div id="itineraryDisplay"></div>
-            
             <button class="disney-button sync-btn" onclick="saveToCloud()">Push to Cloud</button>
         </div>
     </div>
@@ -189,21 +189,23 @@
     const API_KEY = '$2a$10$B2lcgtW9TRoKhvXKDEHxWenp5jGdJL.a2op6oWw8yoVf5Pocmtu3.'; 
     const URL = 'https://api.jsonbin.io/v3/b/' + BIN_ID;
 
-    // --- PASTE YOUR JSON DATABASE HERE ---
     const diningDatabase = {"Quick Service": {"Park": {"Magic Kingdom": ["Casey\u2019s Corner", "Columbia Harbour House", "Cosmic Ray\u2019s Starlight Caf\u00e9", "Friar\u2019s Nook", "Gaston\u2019s Tavern", "Golden Oak Outpost", "Main Street Bakery (Starbucks)", "Pecos Bill Tall Tale Inn and Cafe", "Pinocchio Village Haus", "Sleepy Hollow", "The Lunching Pad", "Tomorrowland Terrace (when operating)"], "EPCOT": ["Connections Caf\u00e9 (Starbucks)", "Connections Eatery", "Cr\u00eapes \u00c0 Emporter", "Katsura Grill", "Kringla Bakeri Og Kafe", "La Cantina de San Angel", "Les Halles Boulangerie\u2011Patisserie", "Regal Eagle Smokehouse", "Sommerfest", "Sunshine Seasons", "Yorkshire County Fish Shop"], "Hollywood Studios": ["ABC Commissary", "Backlot Express", "Catalina Eddie\u2019s", "Docking Bay 7 Food and Cargo", "Fairfax Fare", "PizzeRizzo", "Ronto Roasters", "Rosie\u2019s All\u2011American Caf\u00e9", "Woody\u2019s Lunch Box"], "Animal Kingdom": ["Flame Tree Barbecue", "Harambe Market", "Pizzafari", "Restaurantosaurus", "Satu\u2019li Canteen", "Yak & Yeti Local Food Cafes"]}, "Resort": {"Disney\u2019s Riviera Resort": ["Bar Riva", "Le Petit Caf\u00e9", "Primo Piatto"], "Disney\u2019s Beach Club Resort": ["Beach Club Marketplace", "Hurricane Hanna\u2019s Waterside Bar & Grill"], "Disney\u2019s Grand Floridian Resort": ["Beaches Pool Bar & Grill", "Gasparilla Island Grill"], "Disney\u2019s BoardWalk Inn": ["BoardWalk Deli"], "Disney\u2019s Coronado Springs Resort": ["Caf\u00e9 Rix", "El Mercado de Coronado"], "Disney\u2019s Polynesian Village Resort": ["Capt. Cook\u2019s", "Oasis Bar & Grill"], "Disney\u2019s Caribbean Beach Resort": ["Centertown Market", "Spyglass Grill"], "Disney\u2019s Contemporary Resort": ["Contempo Caf\u00e9", "Sand Bar"], "Disney\u2019s All\u2011Star Sports Resort": ["End Zone Food Court"], "Disney\u2019s Pop Century Resort": ["Everything POP Dining"], "Disney\u2019s Wilderness Lodge": ["Geyser Point Bar & Grill", "Roaring Fork"], "Disney\u2019s Old Key West Resort": ["Good\u2019s Food to Go"], "Disney\u2019s All\u2011Star Music Resort": ["Intermission Food Court"], "Disney\u2019s Art of Animation Resort": ["Landscape of Flavors"], "Disney\u2019s Fort Wilderness Resort & Campground": ["Meadow Snack Bar", "Trail\u2019s End Restaurant / P&J\u2019s Southern Takeout"], "Disney\u2019s Port Orleans Resort \u2013 Riverside": ["Riverside Mill Food Court"], "Disney\u2019s Port Orleans Resort \u2013 French Quarter": ["Sassagoula Floatworks & Food Factory"], "Disney\u2019s Saratoga Springs Resort": ["The Artist\u2019s Palette", "The Paddock Grill"], "Disney\u2019s Animal Kingdom Lodge \u2013 Jambo": ["The Mara"], "Disney\u2019s Yacht Club Resort": ["The Market at Ale & Compass"], "Disney\u2019s All\u2011Star Movies Resort": ["World Premiere Food Court"]}, "Disney Springs": {"Disney Springs": ["4 Rivers Cantina Barbacoa Food Truck", "B.B. Wolf\u2019s Sausage Co.", "Blaze Fast\u2011Fire\u2019d Pizza", "Chicken Guy!", "Chicken Guy! To Go", "Cookes of Dublin", "D\u2011Luxe Burger", "Earl of Sandwich", "Earl of Sandwich Tavern", "Guy Fieri Flavortown Lounge Food Truck", "Morimoto Asia Street Food", "Pepe by Jos\u00e9 Andr\u00e9s", "Pizza Ponte", "Polite Pig", "The Daily Poutine"]}}, "Table Service": {"Park": {"Magic Kingdom": ["Be Our Guest Restaurant", "Cinderella\u2019s Royal Table", "Jungle Navigation Co. Skipper Canteen", "Liberty Tree Tavern", "The Beak and Barrel", "The Crystal Palace", "The Diamond Horseshoe", "The Plaza Restaurant", "Tony\u2019s Town Square Restaurant"], "EPCOT": ["Akershus Royal Banquet Hall", "Biergarten Restaurant", "Chefs de France", "Coral Reef Restaurant", "Garden Grill Restaurant", "La Cr\u00eaperie de Paris", "La Hacienda de San Angel", "Le Cellier Steakhouse", "Monsieur Paul", "Nine Dragons Restaurant", "Rose & Crown Dining Room", "San Angel Inn Restaurante", "Space 220 Restaurant", "Spice Road Table", "Teppan Edo", "Tokyo Dining", "Tutto Italia Ristorante", "Via Napoli Ristorante e Pizzeria"], "Hollywood Studios": ["50\u2019s Prime Time Caf\u00e9", "Hollywood & Vine", "Mama Melrose\u2019s Ristorante Italiano", "Roundup Rodeo BBQ", "Sci\u2011Fi Dine\u2011In Theater Restaurant", "The Hollywood Brown Derby"], "Animal Kingdom": ["Tiffins", "Yak & Yeti Restaurant"]}, "Resort": {"Disney\u2019s Polynesian Village Resort": ["Kona Cafe", "Wailulu Bar & Grill", "\u2018Ohana"], "Disney\u2019s Grand Floridian Resort": ["1900 Park Fare", "C\u00edtricos", "Grand Floridian Cafe", "Narcoossee\u2019s", "Victoria & Albert\u2019s"], "Disney\u2019s Yacht Club Resort": ["Ale & Compass Restaurant", "Yachtsman Steakhouse"], "Disney\u2019s Beach Club Resort": ["Beaches & Cream Soda Shop", "Cape May Cafe"], "Disney\u2019s Port Orleans Resort \u2013 Riverside": ["Boatwright\u2019s Dining Hall"], "Disney\u2019s Animal Kingdom Lodge \u2013 Jambo": ["Boma \u2013 Flavors of Africa", "Jiko \u2013 The Cooking Place"], "Disney\u2019s Contemporary Resort": ["California Grill", "Chef Mickey\u2019s", "Steakhouse 71"], "Disney\u2019s BoardWalk Inn": ["Flying Fish", "Trattoria al Forno"], "Disney\u2019s Fort Wilderness Resort & Campground": ["Hoop\u2011Dee\u2011Doo Musical Revue"], "Disney\u2019s Coronado Springs Resort": ["Maya Grill", "Three Bridges Bar and Grill", "Toledo \u2013 Tapas, Steak & Seafood"], "Disney\u2019s Old Key West Resort": ["Olivia\u2019s Cafe"], "Disney\u2019s Animal Kingdom Lodge \u2013 Kidani": ["Sanaa"], "Disney\u2019s Caribbean Beach Resort": ["Sebastian\u2019s Bistro"], "Disney\u2019s Wilderness Lodge": ["Story Book Dining at Artist Point with Snow White", "Whispering Canyon Cafe"], "Disney\u2019s Saratoga Springs Resort": ["The Turf Club Bar and Grill"], "Disney\u2019s Riviera Resort": ["Topolino\u2019s Terrace \u2013 Flavors of the Riviera"]}, "Disney Springs": {"Disney Springs": ["Chef Art Smith\u2019s Homecomin\u2019", "City Works Eatery & Pour House", "Enzo\u2019s Hideaway Tunnel Bar & Restaurant", "Frontera Cocina", "House of Blues Restaurant & Bar", "Jaleo by Jos\u00e9 Andr\u00e9s", "Maria & Enzo\u2019s Ristorante", "Morimoto Asia", "Paddlefish", "Paradiso 37, Taste of the Americas", "Planet Hollywood Observatory", "Raglan Road Irish Pub and Restaurant", "Rainforest Cafe at Disney Springs", "STK Orlando", "Splitsville Luxury Lanes Dining Room", "Summer House on the Lake", "Terralina Crafted Italian", "The BOATHOUSE", "The Edison", "T\u2011REX", "Wine Bar George \u2013 A Restaurant & Bar", "Wolfgang Puck Bar & Grill"]}}, "Snack": {"Park": {"Magic Kingdom": ["Adventureland Snack Cart (popcorn)", "Adventureland Spring Roll Cart", "Aloha Isle", "Big Thunder Mountain Popcorn Cart", "Castle Hub Popcorn & Ice Cream Cart", "Cheshire Caf\u00e9", "Cool Ship", "Doggone Good Dogs", "Energy Bytes", "Frontierland Popcorn", "Frontierland Turkey Leg Cart", "Golden Oak Outpost Ice Cream Cart", "Joffrey\u2019s Revive", "Liberty Square Market", "Main Street Confectionery", "Main Street Ice Cold Refreshment Cart", "Main Street Popcorn Carts (hub group)", "Pinocchio Village Haus Ice Cream Cart", "Plaza Ice Cream Parlor", "Prince Eric\u2019s Village Market", "Rocket Tower Plaza Ice Cream Cart", "Storybook Circus Popcorn & Ice Cream", "Storybook Circus Pretzels", "Storybook Treats", "Sunshine Tree Terrace"], "EPCOT": ["American Adventure Coffee Cart", "American Adventure Funnel Cakes", "Block & Hans", "Choza de Margarita", "Crepes \u00c0 Emporter", "Gelateria Toscana", "Joy of Tea", "Kabuki Caf\u00e9", "Katsura Grill Outdoor Sake/Kakigori Window", "Kringla Kiosk", "L\u2019Artisan des Glaces", "Mexico Margarita Stand", "Oasis Sips and Sweets", "Popcorn Carts", "Refreshment Outpost", "Refreshment Port", "The Land Cart (Land Kiosk)", "Yorkshire County Fish Shop"], "Hollywood Studios": ["Anaheim Produce", "Coke Bottle Cool Zone", "Dinosaur Gertie\u2019s Ice Cream of Extinction", "Hollywood Scoops", "Hub Popcorn Cart", "Kat Saka\u2019s Kettle", "Market Snack Kiosk", "Milk Stand", "Sunset Ranch Market", "The Market"], "Animal Kingdom": ["Anandapur Ice Cream Truck", "Beastly Kiosk", "Bradley Falls Kiosk", "Caravan Road", "Discovery Island Kiosk", "Drinkwallah", "Eight Spoon Caf\u00e9", "Harambe Market", "Isle of Java", "Mahindi", "Tamu Tamu Refreshments", "Terra Treats", "Warung Outpost"]}, "Resort": {}, "Disney Springs": {}}, "Bar": {"Park": {"Magic Kingdom": ["The Beak and Barrel Lounge Area"], "EPCOT": ["Germany Weinkeller", "La Cava del Tequila", "La Maison du Vin", "Rose & Crown Pub", "Space 220 Lounge", "Tutto Gusto Wine Cellar"], "Hollywood Studios": ["BaseLine Tap House", "Oga\u2019s Cantina", "Sunshine Day Bar", "The Hollywood Brown Derby Lounge", "Tune\u2011In Lounge"], "Animal Kingdom": ["Dawa Bar", "Nomad Lounge", "Thirsty River Bar & Trek Snacks"]}, "Resort": {"Disney\u2019s BoardWalk Inn": ["AbracadaBar", "Belle Vue Lounge"], "Disney\u2019s Yacht Club Resort": ["Ale & Compass Lounge", "Crew\u2019s Cup Lounge"], "Disney\u2019s Saratoga Springs Resort": ["Backstretch Pool Bar", "On the Rocks"], "Disney\u2019s Caribbean Beach Resort": ["Banana Cabana"], "Disney\u2019s Coronado Springs Resort": ["Barcelona Lounge", "Dahlia Lounge", "Rix Sports Bar & Grill"], "Disney\u2019s Contemporary Resort": ["California Grill Lounge", "Outer Rim Lounge", "Steakhouse 71 Lounge"], "Disney\u2019s Animal Kingdom Lodge \u2013 Jambo": ["Cape Town Lounge & Wine Bar", "Uzima Springs Pool Bar", "Victoria Falls Lounge"], "Disney\u2019s Grand Floridian Resort": ["Courtyard Pool Bar", "Enchanted Rose Lounge"], "Disney\u2019s Fort Wilderness Resort & Campground": ["Crockett\u2019s Tavern"], "Disney\u2019s All\u2011Star Sports Resort": ["Grandstand Spirits"], "Disney\u2019s Old Key West Resort": ["Gurgling Suitcase"], "Disney\u2019s Animal Kingdom Lodge \u2013 Kidani": ["Maji Pool Bar", "Sanaa Lounge"], "Disney\u2019s Beach Club Resort": ["Martha\u2019s Vineyard Lounge"], "Disney\u2019s Port Orleans Resort \u2013 Riverside": ["Muddy Rivers Pool Bar", "River Roost Lounge"], "Disney\u2019s Pop Century Resort": ["Petals Pool Bar"], "Disney\u2019s Port Orleans Resort \u2013 French Quarter": ["Scat Cat\u2019s Club \u2013 Lounge"], "Disney\u2019s All\u2011Star Movies Resort": ["Silver Screen Spirits Bar"], "Disney\u2019s All\u2011Star Music Resort": ["Singing Spirits Bar"], "Disney\u2019s Polynesian Village Resort": ["Tambu Lounge", "Trader Sam\u2019s Grog Grotto", "Trader Sam\u2019s Tiki Terrace"], "Disney\u2019s Wilderness Lodge": ["Territory Lounge"], "Disney\u2019s Art of Animation Resort": ["The Drop Off Pool Bar"], "Disney\u2019s Riviera Resort": ["Voyageurs\u2019 Lounge"]}, "Disney Springs": {"Disney Springs": ["Dockside Margaritas", "Enzo\u2019s Hideaway Tunnel Bar", "House of Blues Front Porch Bar", "Jock Lindsey\u2019s Hangar Bar", "Paddlefish Rooftop Bar", "Raglan Road Bar (inside & exterior patio bar)", "STK Orlando Rooftop Bar", "Splitsville Bar", "Stargazers Bar (at Planet Hollywood, when operating seasonally)", "The BOATHOUSE Bars (indoor & Dockside)", "The Edison Bar", "Wine Bar George \u2013 Wine Bar"]}}};
 
-    let data = { contracts: [], trips: [], plans: {}, lastSync: "" };
-    let planViewMode = 'view';
     let currentEditDate = null;
+    let planViewMode = 'view';
 
     async function init() {
         try {
             const res = await fetch(URL + '/latest', { headers: { 'X-Master-Key': API_KEY } });
             const cloud = await res.json();
             data = cloud.record || cloud;
+            if(!data.plans) data.plans = {};
             render();
             updatePlanDropdown();
-        } catch (e) { console.error("Cloud failed"); }
+        } catch (e) { 
+            const backup = localStorage.getItem('dvc_data_final');
+            if(backup) { data = JSON.parse(backup); render(); updatePlanDropdown(); }
+        }
     }
 
     function showTab(id, btn) {
@@ -213,10 +215,19 @@
         btn.classList.add('active');
     }
 
-    // --- PLAN LOGIC ---
+    function updatePlanDropdown() {
+        const sel = document.getElementById('planTripSelect');
+        if(!sel) return;
+        sel.innerHTML = '<option value="" disabled selected>Select a Trip</option>';
+        if(data.trips) {
+            data.trips.forEach(t => sel.innerHTML += `<option value="${t.id}">${t.name}</option>`);
+        }
+    }
+
     function initPlanView() {
         const tId = document.getElementById('planTripSelect').value;
         const trip = data.trips.find(t => t.id == tId);
+        if(!trip) return;
         currentEditDate = trip.start;
         document.getElementById('planArea').style.display = 'block';
         loadItinerary();
@@ -284,28 +295,22 @@
 
     function addPlanFromForm() {
         const tId = document.getElementById('planTripSelect').value;
+        if(!tId) return;
         const type = document.getElementById('newType').value;
         const start = document.getElementById('newStartTime').value;
         const end = document.getElementById('newEndTime').value;
-        
         let desc = document.getElementById('newDesc').value;
         let selection = "";
-
         if(type === 'Dining') {
             selection = document.getElementById('newVenue')?.value || "";
-            if(!selection) { alert("Please select a restaurant!"); return; }
-        } else {
-            if(!desc) { alert("Please enter details!"); return; }
-        }
-
-        if(!data.plans[tId]) data.plans[tId] = {};
-        if(!data.plans[tId][currentEditDate + "_acts"]) data.plans[tId][currentPlanDate + "_acts"] = []; // Fallback logic
+            if(!selection) { alert("Select a restaurant!"); return; }
+        } else if(!desc) { alert("Enter details!"); return; }
+        
         const key = currentEditDate + "_acts";
+        if(!data.plans[tId]) data.plans[tId] = {};
         if(!data.plans[tId][key]) data.plans[tId][key] = [];
-
         data.plans[tId][key].push({ type, start, end, desc, selection });
         
-        // Reset Form
         document.getElementById('newStartTime').value = '';
         document.getElementById('newEndTime').value = '';
         document.getElementById('newDesc').value = '';
@@ -318,54 +323,38 @@
         const trip = data.trips.find(t => t.id == tId);
         const container = document.getElementById('itineraryDisplay');
         container.innerHTML = '';
-
+        if(!trip) return;
         let start = new Date(trip.start + "T00:00:00");
         let end = new Date(trip.end + "T00:00:00");
-
         while(start <= end) {
             const ds = start.toISOString().split('T')[0];
             const acts = data.plans[tId]?.[ds + "_acts"] || [];
-            
             let card = document.createElement('div');
             card.className = 'plan-day-card';
             let html = `<h4>${start.toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'})}</h4>`;
-            
             acts.sort((a,b) => (a.start || "").localeCompare(b.start || "")).forEach((a, i) => {
-                const s = a.start ? formatTime(a.start) : "";
-                const e = a.end ? " - " + formatTime(a.end) : "";
-                html += `
-                    <div class="view-item">
-                        <div class="view-time">${s}${e}</div>
-                        <div class="view-desc"><strong>${a.selection || a.desc}</strong><br><small>${a.type}</small></div>
-                        <span class="trash-btn" onclick="deleteItem('${tId}','${ds}',${i})">🗑️</span>
-                    </div>`;
+                html += `<div class="view-item"><div class="view-time">${formatTime(a.start)}${a.end ? ' - ' + formatTime(a.end) : ''}</div><div class="view-desc"><strong>${a.selection || a.desc}</strong><br><small>${a.type}</small></div><span class="trash-btn" onclick="deleteItem('${tId}','${ds}',${i})">🗑️</span></div>`;
             });
-            card.innerHTML = html;
-            container.appendChild(card);
-            start.setDate(start.getDate() + 1);
+            card.innerHTML = html; container.appendChild(card); start.setDate(start.getDate() + 1);
         }
     }
 
     function deleteItem(tId, date, idx) {
-        if(confirm("Remove this plan?")) {
-            data.plans[tId][date + "_acts"].splice(idx, 1);
-            loadItinerary();
-        }
+        if(confirm("Remove?")) { data.plans[tId][date + "_acts"].splice(idx, 1); loadItinerary(); }
     }
 
     function formatTime(t) {
+        if(!t) return "";
         const [h, m] = t.split(':');
         return ((h % 12) || 12) + ":" + m + (h >= 12 ? ' PM' : ' AM');
     }
 
-    // --- OTHER CORE LOGIC ---
     function render() {
         const summary = document.getElementById('contractSummary');
         const editor = document.getElementById('contractEditor');
         const nextTripDiv = document.getElementById('nextTripDisplay');
         const tripList = document.getElementById('tripManager');
         let totalPts = 0;
-
         summary.innerHTML = ''; editor.innerHTML = ''; nextTripDiv.innerHTML = ''; tripList.innerHTML = '';
 
         data.contracts.forEach(c => {
@@ -375,25 +364,22 @@
             let remCur = Math.max(0, c.annual - used);
             let remFut = Math.max(0, c.annual - (c.borrowed || 0));
             totalPts += (remBanked + remCur + remFut);
-
-            const expire = "Next UY"; // Simpler label
             summary.innerHTML += `<div class="dashboard-contract-card"><div class="card-header"><span>${c.resort}</span></div><div class="point-grid"><div class="point-box"><span class="point-val">${remBanked}</span><span class="point-label">Banked</span></div><div class="point-box"><span class="point-val">${remCur}</span><span class="point-label">Current</span></div><div class="point-box"><span class="point-val">${remFut}</span><span class="point-label">Future</span></div></div></div>`;
             editor.innerHTML += `<div class="dashboard-contract-card" style="padding:15px;"><div style="display:flex; justify-content:space-between"><strong>${c.resort}</strong><span style="color:red; cursor:pointer" onclick="deleteContract(${c.id})">Delete</span></div><div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:5px; margin-top:10px"><span>Banked<br><input type="number" value="${c.banked}" onchange="updateContract(${c.id}, 'banked', this.value)"></span><span>Annual<br><input type="number" value="${c.annual}" disabled></span><span>Borrow<br><input type="number" value="${c.borrowed}" onchange="updateContract(${c.id}, 'borrowed', this.value)"></span></div><div style="text-align:right; margin-top:10px;">Used: <input type="number" style="width:80px; text-align:center;" value="${c.used}" onchange="updateContract(${c.id}, 'used', this.value)"></div></div>`;
         });
-
         document.getElementById('grandTotal').innerText = `TOTAL: ${totalPts} PTS`;
-        const sorted = data.trips.sort((a,b) => new Date(a.start + "T00:00:00") - new Date(b.start + "T00:00:00"));
+        const sorted = (data.trips || []).sort((a,b) => new Date(a.start + "T00:00:00") - new Date(b.start + "T00:00:00"));
         const today = new Date(); today.setHours(0,0,0,0);
-        
-        sorted.forEach((t, index) => {
+        sorted.forEach((t, idx) => {
             const s = new Date(t.start + "T00:00:00");
             const e = new Date(t.end + "T00:00:00");
-            if (index === 0 && today <= e) {
+            if (idx === 0 && today <= e) {
                 let status = (today < s) ? `${Math.ceil((s - today) / (1000*60*60*24))} DAYS UNTIL` : "WELCOME HOME!";
                 nextTripDiv.innerHTML = `<div class="trip-card"><div><strong>${t.name}</strong><br><small>${t.resort}</small></div><div>${status}</div></div>`;
             }
             tripList.innerHTML += `<div class="trip-card"><div>${t.name} (${t.start})</div><button onclick="deleteTrip(${t.id})" style="background:none;border:none;color:red;font-weight:bold;">X</button></div>`;
         });
+        document.getElementById('lastSync').innerText = "Last Sync: " + (data.lastSync || "Check Sync Status");
     }
 
     async function saveToCloud() {
@@ -401,8 +387,7 @@
         try {
             await fetch(URL, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY }, body: JSON.stringify(data) });
             localStorage.setItem('dvc_data_final', JSON.stringify(data));
-            document.getElementById('lastSync').innerText = "Last Sync: " + data.lastSync;
-            alert("Saved!");
+            render(); alert("Saved!");
         } catch (e) { alert("Fail"); }
     }
 
