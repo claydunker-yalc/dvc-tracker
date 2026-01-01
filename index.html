@@ -78,6 +78,28 @@
         .progress-container { background: #eee; height: 10px; width: 100%; }
         .progress-fill { background: var(--sign-blue); height: 100%; }
         .expiration-alert { background: #fff3cd; color: #856404; font-size: 0.7rem; padding: 8px; text-align: center; font-family: 'UniversBold'; border-top: 1px solid #ffeeba; }
+
+        /* THE RED FOOTER STRIPE */
+        .footer-red { 
+            background-color: var(--sign-red); 
+            padding: 18px 10px; 
+            text-align: center; 
+            font-family: 'UniversBold'; 
+            color: var(--sign-yellow); 
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 1.1rem;
+            border-top: 4px solid var(--sign-yellow);
+        }
+        .sync-stamp { 
+            display: block;
+            font-size: 0.65rem; 
+            margin-top: 6px; 
+            color: var(--sign-white); 
+            text-transform: none; 
+            letter-spacing: normal;
+            opacity: 0.9;
+        }
     </style>
 </head>
 <body>
@@ -146,7 +168,8 @@
     </div>
 
     <div class="footer-red">
-        <div id="lastSync" style="font-size: 0.65rem; opacity: 0.8;">Initializing...</div>
+        THE MOST MAGICAL PLACE ON EARTH
+        <div id="lastSync" class="sync-stamp">Initializing Cloud...</div>
     </div>
 </div>
 
@@ -213,11 +236,8 @@
             const dayConfig = data.plans[tId].days[dateStr] || { type: '', location: '' };
             const dayPlans = data.plans[tId][dateStr + "_acts"] || [];
             
-            // Automatic Label Logic
-            let autoLabel = "";
-            if (dateStr === trip.start) autoLabel = `Checking into ${trip.resort}`;
-            else if (dateStr === trip.end) autoLabel = `Checking out of ${trip.resort}`;
-            else autoLabel = `Staying at ${trip.resort}`;
+            let autoLabel = (dateStr === trip.start) ? `Checking into ${trip.resort}` : 
+                            (dateStr === trip.end) ? `Checking out of ${trip.resort}` : `Staying at ${trip.resort}`;
 
             dayPlans.sort((a,b) => a.time.localeCompare(b.time));
 
@@ -244,18 +264,16 @@
                         <option value="EPCOT" ${dayConfig.location === 'EPCOT' ? 'selected' : ''}>EPCOT</option>
                         <option value="Hollywood Studios" ${dayConfig.location === 'Hollywood Studios' ? 'selected' : ''}>Hollywood Studios</option>
                         <option value="Animal Kingdom" ${dayConfig.location === 'Animal Kingdom' ? 'selected' : ''}>Animal Kingdom</option>
-                        <option value="Typhoon Lagoon" ${dayConfig.location === 'Typhoon Lagoon' ? 'selected' : ''}>Typhoon Lagoon</option>
-                        <option value="Blizzard Beach" ${dayConfig.location === 'Blizzard Beach' ? 'selected' : ''}>Blizzard Beach</option>
                     </select>`;
                 } else if(dayConfig.type === 'Resort Day') {
                     html += `<select onchange="updateDayHeader('${tId}','${dateStr}','location',this.value)">
                         <option value="" ${dayConfig.location === '' ? 'selected' : ''}>-- Select Resort --</option>
                         <option value="Animal Kingdom Lodge" ${dayConfig.location === 'Animal Kingdom Lodge' ? 'selected' : ''}>Animal Kingdom Lodge</option>
                         <option value="Beach Club" ${dayConfig.location === 'Beach Club' ? 'selected' : ''}>Beach Club</option>
-                        <option value="BoardWalk" ${dayConfig.location === 'BoardWalk' ? 'selected' : ''}>BoardWalk</option>
+                        <option value="Polynesian" ${dayConfig.location === 'Polynesian' ? 'selected' : ''}>Polynesian</option>
                         <option value="Grand Floridian" ${dayConfig.location === 'Grand Floridian' ? 'selected' : ''}>Grand Floridian</option>
                         <option value="Old Key West" ${dayConfig.location === 'Old Key West' ? 'selected' : ''}>Old Key West</option>
-                        <option value="Polynesian" ${dayConfig.location === 'Polynesian' ? 'selected' : ''}>Polynesian</option>
+                        <option value="Contemporary" ${dayConfig.location === 'Contemporary' ? 'selected' : ''}>Contemporary</option>
                         <option value="Riviera" ${dayConfig.location === 'Riviera' ? 'selected' : ''}>Riviera</option>
                         <option value="Saratoga Springs" ${dayConfig.location === 'Saratoga Springs' ? 'selected' : ''}>Saratoga Springs</option>
                         <option value="Vero Beach" ${dayConfig.location === 'Vero Beach' ? 'selected' : ''}>Vero Beach</option>
@@ -278,16 +296,11 @@
                 dayPlans.forEach(act => {
                     const timeParts = act.time.split(':');
                     const hour = parseInt(timeParts[0]);
-                    const suffix = hour >= 12 ? 'PM' : 'AM';
-                    const hour12 = hour % 12 || 12;
-                    const timeDisp = hour12 + ":" + timeParts[1] + " " + suffix;
+                    const timeDisp = (hour % 12 || 12) + ":" + timeParts[1] + (hour >= 12 ? ' PM' : ' AM');
                     html += `<div class="view-item"><span class="view-time">${timeDisp}</span><span>${act.desc}</span></div>`;
                 });
             }
-
-            html += `</div>`;
-            container.innerHTML += html;
-            start.setDate(start.getDate() + 1);
+            html += `</div>`; container.innerHTML += html; start.setDate(start.getDate() + 1);
         }
     }
 
@@ -312,8 +325,7 @@
     }
 
     function deleteActivity(tId, date, idx) {
-        data.plans[tId][date + "_acts"].splice(idx, 1);
-        loadTripPlans();
+        data.plans[tId][date + "_acts"].splice(idx, 1); loadTripPlans();
     }
 
     async function saveToCloud() {
@@ -335,8 +347,7 @@
         const end = document.getElementById('checkOut').value;
         if(!name || !resort || !start || !end) return;
         data.trips.push({ id: Date.now(), name, resort, start, end });
-        render(); updatePlanDropdown();
-        document.getElementById('tripName').value = '';
+        render(); updatePlanDropdown(); document.getElementById('tripName').value = '';
     }
 
     function render() {
@@ -359,8 +370,8 @@
             totalPts += (remBanked + remCur + remFut);
 
             const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            const today = new Date();
             const uyIdx = months.indexOf(c.uy.substring(0,3));
-            let today = new Date();
             let curUYYear = (today.getMonth() < uyIdx) ? today.getFullYear() - 1 : today.getFullYear();
             const expire = new Date(curUYYear + 1, uyIdx, 0).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
 
@@ -375,15 +386,7 @@
                     <div class="expiration-alert">⚠️ ${curUYYear - 1} BANKED POINTS EXPIRE ${expire.toUpperCase()}</div>
                 </div>`;
 
-            editor.innerHTML += `<div class="summary-card">
-                <div style="display:flex; justify-content:space-between"><strong>${c.resort}</strong><span style="color:red; cursor:pointer" onclick="deleteContract(${c.id})">Delete</span></div>
-                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:5px; margin-top:10px">
-                    <span>Banked<br><input type="number" value="${c.banked}" onchange="updateContract(${c.id}, 'banked', this.value)"></span>
-                    <span>Annual<br><input type="number" value="${c.annual}" disabled></span>
-                    <span>Borrow<br><input type="number" value="${c.borrowed}" onchange="updateContract(${c.id}, 'borrowed', this.value)"></span>
-                </div>
-                <div style="text-align:right; margin-top:10px;">Used: <input type="number" style="width:80px; text-align:center;" value="${c.used}" onchange="updateContract(${c.id}, 'used', this.value)"></div>
-            </div>`;
+            editor.innerHTML += `<div class="summary-card"><div style="display:flex; justify-content:space-between"><strong>${c.resort}</strong><span style="color:red; cursor:pointer" onclick="deleteContract(${c.id})">Delete</span></div><div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:5px; margin-top:10px"><span>Banked<br><input type="number" value="${c.banked}" onchange="updateContract(${c.id}, 'banked', this.value)"></span><span>Annual<br><input type="number" value="${c.annual}" disabled></span><span>Borrow<br><input type="number" value="${c.borrowed}" onchange="updateContract(${c.id}, 'borrowed', this.value)"></span></div><div style="text-align:right; margin-top:10px;">Used: <input type="number" style="width:80px; text-align:center;" value="${c.used}" onchange="updateContract(${c.id}, 'used', this.value)"></div></div>`;
         });
 
         document.getElementById('grandTotal').innerText = `TOTAL: ${totalPts} PTS`;
@@ -401,14 +404,9 @@
         });
     }
 
-    function updateContract(id, key, val) {
-        const idx = data.contracts.findIndex(c => c.id === id);
-        data.contracts[idx][key] = parseInt(val) || 0;
-        render();
-    }
+    function updateContract(id, key, val) { const idx = data.contracts.findIndex(c => c.id === id); data.contracts[idx][key] = parseInt(val) || 0; render(); }
     function deleteTrip(id) { if(confirm("Delete trip?")) { data.trips = data.trips.filter(t => t.id !== id); render(); updatePlanDropdown(); } }
     function deleteContract(id) { if(confirm("Delete?")) { data.contracts = data.contracts.filter(c => c.id !== id); render(); } }
-
     init();
 </script>
 </body>
