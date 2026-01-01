@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DVC Master Tracker</title>
     <style>
+        /* --- FONT REGISTRATION --- */
         @font-face { font-family: 'DisneyMagic'; src: url('waltograph42.ttf'); }
         @font-face { font-family: 'UniversBold'; src: url('SNBold.ttf'); }
         @font-face { font-family: 'UniversRegular'; src: url('SNRegular.ttf'); }
@@ -64,7 +65,16 @@
         .sync-stamp { font-size: 0.6rem; color: rgba(255,255,255,0.5); text-align: center; margin-top: 5px; text-transform: none; }
 
         input, select { width: 100%; padding: 12px; margin-bottom: 12px; box-sizing: border-box; font-family: 'UniversRegular'; font-size: 1rem; }
-        .used-input { width: 120px !important; padding: 8px !important; font-size: 1.2rem !important; text-align: center; font-weight: bold; }
+        
+        /* Larger Used Input Box for Triple Digits */
+        .used-input { 
+            width: 110px !important; 
+            padding: 8px !important; 
+            font-size: 1.2rem !important;
+            text-align: center;
+            font-weight: bold;
+        }
+
         .date-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .disney-button { background: var(--sign-yellow); color: #333; border: none; padding: 18px; font-family: 'UniversBold'; cursor: pointer; text-transform: uppercase; width: 100%; border-radius: 4px; font-size: 1rem; }
         .sync-btn { background: var(--sign-red); color: white; border: 4px solid var(--sign-yellow); margin-top: 20px; }
@@ -168,7 +178,7 @@
 
     <div class="footer-red">
         <div>THE MOST MAGICAL PLACE ON EARTH</div>
-        <div id="lastSync" class="sync-stamp">Initializing...</div>
+        <div id="lastSync" class="sync-stamp">Initializing Cloud...</div>
     </div>
 </div>
 
@@ -181,9 +191,7 @@
 
     async function init() {
         try {
-            const res = await fetch(URL + '/latest', {
-                headers: { 'X-Master-Key': API_KEY }
-            });
+            const res = await fetch(URL + '/latest', { headers: { 'X-Master-Key': API_KEY } });
             const cloud = await res.json();
             data = cloud.record || cloud;
             render();
@@ -207,6 +215,7 @@
         const uy = document.getElementById('newUY').value;
         if(!res || isNaN(pts)) return;
         data.contracts.push({ id: Date.now(), resort: res, annual: pts, uy, banked: 0, borrowed: 0, used: 0 });
+        
         document.getElementById('newResort').selectedIndex = 0;
         document.getElementById('newPoints').value = '';
         document.getElementById('newUY').selectedIndex = 0;
@@ -226,6 +235,7 @@
         const end = document.getElementById('checkOut').value;
         if(!name || !resort || !start || !end) return;
         data.trips.push({ id: Date.now(), name, resort, start, end });
+        
         document.getElementById('tripName').value = '';
         document.getElementById('tripResort').selectedIndex = 0;
         document.getElementById('checkIn').value = '';
@@ -234,12 +244,14 @@
     }
 
     function deleteTrip(id) {
-        data.trips = data.trips.filter(t => t.id !== id);
-        render();
+        if(confirm("Delete trip?")) {
+            data.trips = data.trips.filter(t => t.id !== id);
+            render();
+        }
     }
 
     function deleteContract(id) {
-        if(confirm("Delete this contract?")) {
+        if(confirm("Delete contract?")) {
             data.contracts = data.contracts.filter(c => c.id !== id);
             render();
         }
@@ -249,11 +261,10 @@
         const btns = document.querySelectorAll('.sync-btn');
         btns.forEach(btn => btn.innerText = "SYNCING...");
         data.lastSync = new Date().toLocaleString();
-        
         try {
-            await fetch(URL, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY },
+            await fetch(URL, { 
+                method: 'PUT', 
+                headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY }, 
                 body: JSON.stringify(data)
             });
             localStorage.setItem('dvc_data_final', JSON.stringify(data));
@@ -281,7 +292,7 @@
         data.contracts.forEach(c => {
             const avail = (c.annual + (c.banked || 0) + (c.borrowed || 0)) - (c.used || 0);
             total += avail;
-            summary.innerHTML += `<div class="summary-card"><strong>${c.resort}</strong><span style="float:right;">${avail} PTS</span><br><small>${c.uy.toUpperCase()}</small></div>`;
+            summary.innerHTML += `<div class="summary-card"><strong>${c.resort}</strong><span style="float:right;">${avail} PTS</span><br><small>${c.uy.toUpperCase()} USE YEAR</small></div>`;
             editor.innerHTML += `<div class="summary-card"><div style="display:flex; justify-content:space-between"><strong>${c.resort}</strong><span style="color:red; cursor:pointer" onclick="deleteContract(${c.id})">Delete</span></div><small>${c.uy.toUpperCase()}</small><div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:5px; font-size:0.7rem; margin-top:10px"><span>Banked<br><input type="number" value="${c.banked}" onchange="updatePoints(${c.id}, 'banked', this.value)"></span><span>Annual<br><input type="number" value="${c.annual}" disabled></span><span>Borrow<br><input type="number" value="${c.borrowed}" onchange="updatePoints(${c.id}, 'borrowed', this.value)"></span></div><div style="text-align:right; margin-top:10px;">Used: <input type="number" class="used-input" value="${c.used}" onchange="updatePoints(${c.id}, 'used', this.value)"></div></div>`;
         });
         document.getElementById('grandTotal').innerText = `TOTAL: ${total} PTS`;
