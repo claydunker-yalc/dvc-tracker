@@ -58,23 +58,38 @@
         .tab-content.active { display: block; }
 
         .total-points-sign { font-family: 'UniversBold'; font-size: 2.5rem; color: var(--sign-yellow); text-align: center; margin-bottom: 20px; }
-        .summary-card { background: white; color: #333; border-radius: 4px; margin-bottom: 15px; padding: 18px; border-left: 12px solid var(--sign-blue); box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
-        .trip-card { background: var(--sign-yellow); color: #222; padding: 14px; border-radius: 4px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; font-family: 'UniversBold'; }
+        
+        /* Dashboard Card Styling */
+        .dashboard-contract-card {
+            background: white;
+            color: #333;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 12px solid var(--sign-blue);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .card-header { padding: 12px 15px; background: #f8f9fa; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .point-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; text-align: center; padding: 15px 5px; background: #fff; }
+        .point-box { border-right: 1px solid #eee; }
+        .point-box:last-child { border-right: none; }
+        .point-val { font-family: 'UniversBold'; font-size: 1.4rem; color: var(--sign-purple); display: block; }
+        .point-label { font-size: 0.65rem; color: #666; text-transform: uppercase; }
 
+        /* Progress Bar */
+        .progress-container { background: #eee; height: 8px; width: 100%; position: relative; }
+        .progress-fill { background: var(--sign-blue); height: 100%; transition: width 0.5s ease-in-out; }
+        
+        .expiration-alert { background: #fff3cd; color: #856404; font-size: 0.7rem; padding: 8px; text-align: center; font-family: 'UniversBold'; border-top: 1px solid #ffeeba; }
+
+        /* General UI Elements */
+        .summary-card { background: white; color: #333; border-radius: 4px; margin-bottom: 15px; padding: 18px; border-left: 12px solid var(--sign-blue); }
+        .trip-card { background: var(--sign-yellow); color: #222; padding: 14px; border-radius: 4px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; font-family: 'UniversBold'; }
         .footer-red { background-color: var(--sign-red); padding: 15px; text-align: center; font-family: 'UniversBold'; font-size: 1.1rem; color: var(--sign-yellow); letter-spacing: 2px; text-transform: uppercase; }
         .sync-stamp { font-size: 0.6rem; color: rgba(255,255,255,0.5); text-align: center; margin-top: 5px; text-transform: none; }
-
         input, select { width: 100%; padding: 12px; margin-bottom: 12px; box-sizing: border-box; font-family: 'UniversRegular'; font-size: 1rem; }
-        
-        /* Larger Used Input Box for Triple Digits */
-        .used-input { 
-            width: 110px !important; 
-            padding: 8px !important; 
-            font-size: 1.2rem !important;
-            text-align: center;
-            font-weight: bold;
-        }
-
+        .used-input { width: 110px !important; padding: 8px !important; font-size: 1.2rem !important; text-align: center; font-weight: bold; }
         .date-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .disney-button { background: var(--sign-yellow); color: #333; border: none; padding: 18px; font-family: 'UniversBold'; cursor: pointer; text-transform: uppercase; width: 100%; border-radius: 4px; font-size: 1rem; }
         .sync-btn { background: var(--sign-red); color: white; border: 4px solid var(--sign-yellow); margin-top: 20px; }
@@ -99,7 +114,7 @@
     <div id="home" class="tab-content active">
         <div id="grandTotal" class="total-points-sign">TOTAL: 0 PTS</div>
         <div id="nextTripDisplay"></div>
-        <h3 style="border-bottom: 2px solid rgba(255,255,255,0.2); padding-bottom: 8px;">CURRENT STANDING</h3>
+        <h3 style="border-bottom: 2px solid rgba(255,255,255,0.2); padding-bottom: 8px;">CONTRACTS AT A GLANCE</h3>
         <div id="contractSummary"></div>
     </div>
 
@@ -133,7 +148,6 @@
             <button class="disney-button" onclick="addTrip()">Add Trip</button>
             <button class="disney-button sync-btn" onclick="saveToCloud()">PUSH TO DISNEY CLOUD</button>
         </div>
-        <h3>ALL RESERVATIONS</h3>
         <div id="tripManager"></div>
     </div>
 
@@ -209,16 +223,27 @@
         event.currentTarget.classList.add('active');
     }
 
+    function getUYExpiration(uyMonthStr) {
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const today = new Date();
+        const curYear = today.getFullYear();
+        const uyIdx = months.indexOf(uyMonthStr.substring(0,3));
+        let curUYYear = (today.getMonth() < uyIdx) ? curYear - 1 : curYear;
+        const expire = new Date(curUYYear + 1, uyIdx, 0);
+        return { 
+            bankedYear: curUYYear - 1, 
+            date: expire.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) 
+        };
+    }
+
     function addContract() {
         const res = document.getElementById('newResort').value;
         const pts = parseInt(document.getElementById('newPoints').value);
         const uy = document.getElementById('newUY').value;
         if(!res || isNaN(pts)) return;
         data.contracts.push({ id: Date.now(), resort: res, annual: pts, uy, banked: 0, borrowed: 0, used: 0 });
-        
         document.getElementById('newResort').selectedIndex = 0;
         document.getElementById('newPoints').value = '';
-        document.getElementById('newUY').selectedIndex = 0;
         render();
     }
 
@@ -235,47 +260,23 @@
         const end = document.getElementById('checkOut').value;
         if(!name || !resort || !start || !end) return;
         data.trips.push({ id: Date.now(), name, resort, start, end });
-        
         document.getElementById('tripName').value = '';
-        document.getElementById('tripResort').selectedIndex = 0;
-        document.getElementById('checkIn').value = '';
-        document.getElementById('checkOut').value = '';
         render();
     }
 
-    function deleteTrip(id) {
-        if(confirm("Delete trip?")) {
-            data.trips = data.trips.filter(t => t.id !== id);
-            render();
-        }
-    }
-
-    function deleteContract(id) {
-        if(confirm("Delete contract?")) {
-            data.contracts = data.contracts.filter(c => c.id !== id);
-            render();
-        }
-    }
+    function deleteContract(id) { if(confirm("Delete?")) { data.contracts = data.contracts.filter(c => c.id !== id); render(); } }
+    function deleteTrip(id) { if(confirm("Delete?")) { data.trips = data.trips.filter(t => t.id !== id); render(); } }
 
     async function saveToCloud() {
         const btns = document.querySelectorAll('.sync-btn');
         btns.forEach(btn => btn.innerText = "SYNCING...");
         data.lastSync = new Date().toLocaleString();
         try {
-            await fetch(URL, { 
-                method: 'PUT', 
-                headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY }, 
-                body: JSON.stringify(data)
-            });
+            await fetch(URL, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY }, body: JSON.stringify(data) });
             localStorage.setItem('dvc_data_final', JSON.stringify(data));
             btns.forEach(btn => btn.innerText = "SUCCESS! ✅");
-        } catch (e) {
-            btns.forEach(btn => btn.innerText = "FAIL - LOCAL ONLY");
-        }
-        setTimeout(() => {
-            btns.forEach(btn => btn.innerText = "PUSH TO DISNEY CLOUD");
-            render();
-        }, 2000);
+        } catch (e) { btns.forEach(btn => btn.innerText = "FAIL - LOCAL ONLY"); }
+        setTimeout(() => { btns.forEach(btn => btn.innerText = "PUSH TO DISNEY CLOUD"); render(); }, 2000);
     }
 
     function render() {
@@ -292,11 +293,25 @@
         data.contracts.forEach(c => {
             const avail = (c.annual + (c.banked || 0) + (c.borrowed || 0)) - (c.used || 0);
             total += avail;
-            summary.innerHTML += `<div class="summary-card"><strong>${c.resort}</strong><span style="float:right;">${avail} PTS</span><br><small>${c.uy.toUpperCase()} USE YEAR</small></div>`;
+            const uyInfo = getUYExpiration(c.uy);
+            const usePercent = Math.min(((c.used || 0) / (c.annual + (c.banked || 0))) * 100, 100);
+
+            summary.innerHTML += `
+                <div class="dashboard-contract-card">
+                    <div class="card-header"><strong>${c.resort}</strong><small>${c.uy.toUpperCase()} UY</small></div>
+                    <div class="point-grid">
+                        <div class="point-box"><span class="point-val">${c.banked || 0}</span><span class="point-label">Banked</span></div>
+                        <div class="point-box"><span class="point-val">${c.annual}</span><span class="point-label">Current</span></div>
+                        <div class="point-box"><span class="point-val">${c.annual}</span><span class="point-label">Future</span></div>
+                    </div>
+                    <div class="progress-container"><div class="progress-fill" style="width: ${usePercent}%"></div></div>
+                    <div class="expiration-alert">⚠️ ${uyInfo.bankedYear} BANKED POINTS EXPIRE ${uyInfo.date.toUpperCase()}</div>
+                </div>`;
+
             editor.innerHTML += `<div class="summary-card"><div style="display:flex; justify-content:space-between"><strong>${c.resort}</strong><span style="color:red; cursor:pointer" onclick="deleteContract(${c.id})">Delete</span></div><small>${c.uy.toUpperCase()}</small><div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:5px; font-size:0.7rem; margin-top:10px"><span>Banked<br><input type="number" value="${c.banked}" onchange="updatePoints(${c.id}, 'banked', this.value)"></span><span>Annual<br><input type="number" value="${c.annual}" disabled></span><span>Borrow<br><input type="number" value="${c.borrowed}" onchange="updatePoints(${c.id}, 'borrowed', this.value)"></span></div><div style="text-align:right; margin-top:10px;">Used: <input type="number" class="used-input" value="${c.used}" onchange="updatePoints(${c.id}, 'used', this.value)"></div></div>`;
         });
-        document.getElementById('grandTotal').innerText = `TOTAL: ${total} PTS`;
 
+        document.getElementById('grandTotal').innerText = `TOTAL: ${total} PTS`;
         const sortedTrips = data.trips.sort((a,b) => new Date(a.start) - new Date(b.start));
         const today = new Date();
 
@@ -305,7 +320,6 @@
             const end = new Date(t.end);
             let status = (today < start) ? `${Math.ceil((start - today) / (1000*60*60*24))} DAYS UNTIL` : (today <= end ? "WELCOME HOME!" : "COMPLETED");
             const tripHTML = `<div class="trip-card"><div><strong>${t.name}</strong><br><small>${t.resort}<br>${t.start} to ${t.end}</small></div><div>${status}</div></div>`;
-            
             if (index === 0 && today <= end) nextTripDiv.innerHTML = tripHTML;
             tripMan.innerHTML += `<div class="trip-card"><div><strong>${t.name}</strong><br><small>${t.resort}</small></div><button onclick="deleteTrip(${t.id})" style="background:none; border:none; color:red; font-weight:bold">X</button></div>`;
         });
