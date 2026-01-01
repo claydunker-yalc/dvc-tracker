@@ -47,7 +47,7 @@
         .point-label { font-size: 0.6rem; color: #666; text-transform: uppercase; }
         .expiration-alert { background: #fff3cd; color: #856404; font-size: 0.7rem; padding: 8px; text-align: center; font-family: 'UniversBold'; border-top: 1px solid #ffeeba; }
 
-        /* Date Nav Bar */
+        /* Date Nav Bar (Edit View) */
         .date-nav-bar {
             display: flex; align-items: center; justify-content: space-between;
             background: var(--sign-white); color: var(--sign-purple);
@@ -59,7 +59,8 @@
         .hidden-date-input { position: absolute; opacity: 0; pointer-events: none; }
 
         /* Plan Cards */
-        .plan-day-card { background: white; color: #333; border-radius: 8px; padding: 15px; border-left: 10px solid var(--sign-red); box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .plan-day-card { background: white; color: #333; border-radius: 8px; padding: 15px; border-left: 10px solid var(--sign-red); box-shadow: 0 4px 10px rgba(0,0,0,0.2); margin-bottom: 15px; }
+        .plan-day-card h4 { margin: 0 0 10px 0; color: var(--sign-purple); font-family: 'UniversBold'; border-bottom: 1px solid #eee; padding-bottom: 5px; }
         .activity-row { background: #f1f1f1; border: 1px solid #ccc; border-radius: 6px; padding: 12px; margin-bottom: 12px; position: relative; }
         .time-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
         .smart-dropdowns { display: flex; flex-direction: column; gap: 8px; }
@@ -108,18 +109,20 @@
         <select id="planTripSelect" onchange="initPlanView()" style="margin-bottom:15px;"></select>
         
         <div id="planArea" style="display:none;">
-            <div class="date-nav-bar">
-                <button id="prevDate" class="nav-arrow" onclick="changeDate(-1)">❮</button>
-                <div class="current-date-display" onclick="triggerDatePicker()">
-                    <span id="displayDateText">Date</span>
-                    <input type="date" id="jumpDatePicker" class="hidden-date-input" onchange="jumpToDate(this.value)">
-                </div>
-                <button id="nextDate" class="nav-arrow" onclick="changeDate(1)">❯</button>
-            </div>
-
             <div style="display:flex; gap:5px; margin-bottom:15px;">
                 <button id="viewBtn" class="tab-btn active" style="font-size:0.7rem; min-width:unset; background:rgba(0,0,0,0.3)" onclick="setPlanMode('view')">View Itinerary</button>
-                <button id="editBtn" class="tab-btn" style="font-size:0.7rem; min-width:unset; background:rgba(0,0,0,0.3)" onclick="setPlanMode('edit')">Edit Day</button>
+                <button id="editBtn" class="tab-btn" style="font-size:0.7rem; min-width:unset; background:rgba(0,0,0,0.3)" onclick="setPlanMode('edit')">Edit Day-by-Day</button>
+            </div>
+
+            <div id="editNavArea" style="display:none;">
+                <div class="date-nav-bar">
+                    <button id="prevDate" class="nav-arrow" onclick="changeDate(-1)">❮</button>
+                    <div class="current-date-display" onclick="triggerDatePicker()">
+                        <span id="displayDateText">Date</span>
+                        <input type="date" id="jumpDatePicker" class="hidden-date-input" onchange="jumpToDate(this.value)">
+                    </div>
+                    <button id="nextDate" class="nav-arrow" onclick="changeDate(1)">❯</button>
+                </div>
             </div>
 
             <div id="planDayContainer"></div>
@@ -177,20 +180,12 @@
             const res = await fetch(URL + '/latest', { headers: { 'X-Master-Key': API_KEY } });
             const cloud = await res.json();
             data = cloud.record || cloud;
-            if(!data.plans) data.plans = {};
             render();
             updatePlanDropdown();
         } catch (e) {
             const backup = localStorage.getItem('dvc_data_final');
             if(backup) { data = JSON.parse(backup); render(); }
         }
-    }
-
-    function showTab(id) {
-        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        event.currentTarget.classList.add('active');
     }
 
     // --- PLANS LOGIC ---
@@ -204,7 +199,15 @@
         const tId = document.getElementById('planTripSelect').value;
         const trip = data.trips.find(t => t.id == tId);
         currentPlanDate = trip.start;
-        loadDay();
+        loadPlans();
+    }
+
+    function setPlanMode(m) {
+        planMode = m;
+        document.getElementById('viewBtn').classList.toggle('active', m === 'view');
+        document.getElementById('editBtn').classList.toggle('active', m === 'edit');
+        document.getElementById('editNavArea').style.display = (m === 'edit' ? 'block' : 'none');
+        loadPlans();
     }
 
     function changeDate(dir) {
@@ -212,54 +215,68 @@
         let d = new Date(currentPlanDate + "T00:00:00");
         d.setDate(d.getDate() + dir);
         let newStr = d.toISOString().split('T')[0];
-        if (newStr >= trip.start && newStr <= trip.end) { currentPlanDate = newStr; loadDay(); }
+        if (newStr >= trip.start && newStr <= trip.end) { currentPlanDate = newStr; loadPlans(); }
     }
 
     function triggerDatePicker() { document.getElementById('jumpDatePicker').showPicker(); }
     function jumpToDate(val) {
         const tId = document.getElementById('planTripSelect').value;
         const trip = data.trips.find(t => t.id == tId);
-        if (val >= trip.start && val <= trip.end) { currentPlanDate = val; loadDay(); }
+        if (val >= trip.start && val <= trip.end) { currentPlanDate = val; loadPlans(); }
     }
 
-    function setPlanMode(m) {
-        planMode = m;
-        document.getElementById('viewBtn').classList.toggle('active', m === 'view');
-        document.getElementById('editBtn').classList.toggle('active', m === 'edit');
-        loadDay();
-    }
-
-    function loadDay() {
+    function loadPlans() {
         const tId = document.getElementById('planTripSelect').value;
         const container = document.getElementById('planDayContainer');
+        const trip = data.trips.find(t => t.id == tId);
         document.getElementById('planArea').style.display = 'block';
-        const dateObj = new Date(currentPlanDate + "T00:00:00");
-        document.getElementById('displayDateText').innerText = dateObj.toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'});
-
-        const acts = data.plans[tId]?.[currentPlanDate + "_acts"] || [];
         container.innerHTML = '';
 
         if (planMode === 'edit') {
+            // SINGLE DAY EDIT LOGIC
+            const dateObj = new Date(currentPlanDate + "T00:00:00");
+            document.getElementById('displayDateText').innerText = dateObj.toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'});
+            
+            const acts = data.plans[tId]?.[currentPlanDate + "_acts"] || [];
             acts.forEach((a, i) => container.appendChild(createActivityEditor(tId, i, a)));
+            
             let addBtn = document.createElement('button');
             addBtn.className = "disney-button";
-            addBtn.innerText = "+ Add Event";
+            addBtn.innerText = "+ Add Event for " + dateObj.toLocaleDateString('en-US', {day:'numeric'});
             addBtn.onclick = () => {
                 if (!data.plans[tId]) data.plans[tId] = {};
                 if (!data.plans[tId][currentPlanDate + "_acts"]) data.plans[tId][currentPlanDate + "_acts"] = [];
                 data.plans[tId][currentPlanDate + "_acts"].push({ type: 'Other', start: '12:00' });
-                loadDay();
+                loadPlans();
             };
             container.appendChild(addBtn);
         } else {
-            acts.sort((a,b) => a.start.localeCompare(b.start)).forEach(a => {
-                let div = document.createElement('div');
-                div.className = "view-item";
-                div.innerHTML = `<div class="view-time">${formatTime(a.start)}${a.end ? ' - ' + formatTime(a.end) : ''}</div>
-                                 <div class="view-desc"><strong>${a.selection || a.desc || 'Untitled'}</strong><br><small style="color:#666">${a.type}</small></div>`;
-                container.appendChild(div);
-            });
-            if(acts.length === 0) container.innerHTML = '<p style="text-align:center; color:#666;">Nothing planned yet!</p>';
+            // FULL TRIP VIEW LOGIC
+            let start = new Date(trip.start + "T00:00:00");
+            let end = new Date(trip.end + "T00:00:00");
+            
+            while(start <= end) {
+                const ds = start.toISOString().split('T')[0];
+                const dayActs = data.plans[tId]?.[ds + "_acts"] || [];
+                
+                let dayCard = document.createElement('div');
+                dayCard.className = 'plan-day-card';
+                let html = `<h4>${start.toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'})}</h4>`;
+                
+                if(dayActs.length === 0) {
+                    html += '<p style="font-size:0.8rem; color:#999; margin:5px 0;">No plans yet.</p>';
+                } else {
+                    dayActs.sort((a,b) => a.start.localeCompare(b.start)).forEach(a => {
+                        html += `<div class="view-item">
+                                    <div class="view-time">${formatTime(a.start)}${a.end ? ' - ' + formatTime(a.end) : ''}</div>
+                                    <div class="view-desc"><strong>${a.selection || a.desc || 'Untitled'}</strong><br><small style="color:#666">${a.type}</small></div>
+                                 </div>`;
+                    });
+                }
+                dayCard.innerHTML = html;
+                container.appendChild(dayCard);
+                start.setDate(start.getDate() + 1);
+            }
         }
     }
 
@@ -345,11 +362,11 @@
         area.innerHTML = `<label>Specific Venue</label><select onchange="updateAct('${tId}',${idx},'selection',this.value)"><option value="">-- Choose Venue --</option>${rests.map(r => `<option value="${r}" ${act.selection === r ? 'selected' : ''}>${r}</option>`).join('')}</select>`;
     }
 
-    function updateActType(tId, idx, val) { data.plans[tId][currentPlanDate + "_acts"][idx] = { start: data.plans[tId][currentPlanDate + "_acts"][idx].start, type: val }; loadDay(); }
+    function updateActType(tId, idx, val) { data.plans[tId][currentPlanDate + "_acts"][idx] = { start: data.plans[tId][currentPlanDate + "_acts"][idx].start, type: val }; loadPlans(); }
     function updateAct(tId, idx, key, val) { data.plans[tId][currentPlanDate + "_acts"][idx][key] = val; }
-    function deleteAct(tId, idx) { if(confirm("Remove?")) { data.plans[tId][currentPlanDate + "_acts"].splice(idx, 1); loadDay(); } }
+    function deleteAct(tId, idx) { if(confirm("Remove?")) { data.plans[tId][currentPlanDate + "_acts"].splice(idx, 1); loadPlans(); } }
 
-    // --- DASHBOARD & CONTRACTS RENDER ---
+    // --- DASHBOARD & CONTRACTS ---
     function render() {
         const summary = document.getElementById('contractSummary');
         const editor = document.getElementById('contractEditor');
@@ -375,27 +392,8 @@
             let curUYYear = (today.getMonth() < uyIdx) ? today.getFullYear() - 1 : today.getFullYear();
             const expire = new Date(curUYYear + 1, uyIdx, 0).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
 
-            summary.innerHTML += `
-                <div class="dashboard-contract-card">
-                    <div class="card-header"><span>${c.resort}</span><small>${c.uy.toUpperCase()} UY</small></div>
-                    <div class="point-grid">
-                        <div class="point-box"><span class="point-val">${remBanked}</span><span class="point-label">Banked</span></div>
-                        <div class="point-box"><span class="point-val">${remCur}</span><span class="point-label">Current</span></div>
-                        <div class="point-box"><span class="point-val">${remFut}</span><span class="point-label">Future</span></div>
-                    </div>
-                    <div class="expiration-alert">⚠️ ${curUYYear - 1} BANKED POINTS EXPIRE ${expire.toUpperCase()}</div>
-                </div>`;
-
-            editor.innerHTML += `
-                <div class="dashboard-contract-card" style="padding:15px;">
-                    <div style="display:flex; justify-content:space-between"><strong>${c.resort}</strong><span style="color:red; cursor:pointer" onclick="deleteContract(${c.id})">Delete</span></div>
-                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:5px; margin-top:10px">
-                        <span>Banked<br><input type="number" style="width:100%" value="${c.banked}" onchange="updateContract(${c.id}, 'banked', this.value)"></span>
-                        <span>Annual<br><input type="number" style="width:100%" value="${c.annual}" disabled></span>
-                        <span>Borrow<br><input type="number" style="width:100%" value="${c.borrowed}" onchange="updateContract(${c.id}, 'borrowed', this.value)"></span>
-                    </div>
-                    <div style="text-align:right; margin-top:10px;">Used: <input type="number" style="width:80px; text-align:center;" value="${c.used}" onchange="updateContract(${c.id}, 'used', this.value)"></div>
-                </div>`;
+            summary.innerHTML += `<div class="dashboard-contract-card"><div class="card-header"><span>${c.resort}</span><small>${c.uy.toUpperCase()} UY</small></div><div class="point-grid"><div class="point-box"><span class="point-val">${remBanked}</span><span class="point-label">Banked</span></div><div class="point-box"><span class="point-val">${remCur}</span><span class="point-label">Current</span></div><div class="point-box"><span class="point-val">${remFut}</span><span class="point-label">Future</span></div></div><div class="expiration-alert">⚠️ ${curUYYear - 1} BANKED POINTS EXPIRE ${expire.toUpperCase()}</div></div>`;
+            editor.innerHTML += `<div class="dashboard-contract-card" style="padding:15px;"><div style="display:flex; justify-content:space-between"><strong>${c.resort}</strong><span style="color:red; cursor:pointer" onclick="deleteContract(${c.id})">Delete</span></div><div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:5px; margin-top:10px"><span>Banked<br><input type="number" style="width:100%" value="${c.banked}" onchange="updateContract(${c.id}, 'banked', this.value)"></span><span>Annual<br><input type="number" style="width:100%" value="${c.annual}" disabled></span><span>Borrow<br><input type="number" style="width:100%" value="${c.borrowed}" onchange="updateContract(${c.id}, 'borrowed', this.value)"></span></div><div style="text-align:right; margin-top:10px;">Used: <input type="number" style="width:80px; text-align:center;" value="${c.used}" onchange="updateContract(${c.id}, 'used', this.value)"></div></div>`;
         });
 
         document.getElementById('grandTotal').innerText = `TOTAL: ${totalPts} PTS`;
