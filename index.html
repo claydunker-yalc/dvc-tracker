@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DVC Master Tracker</title>
     <style>
-        /* --- FONT REGISTRATION --- */
         @font-face { font-family: 'DisneyMagic'; src: url('waltograph42.ttf'); }
         @font-face { font-family: 'UniversBold'; src: url('SNBold.ttf'); }
         @font-face { font-family: 'UniversRegular'; src: url('SNRegular.ttf'); }
@@ -23,74 +22,58 @@
             background: url('background.png') no-repeat center bottom fixed;
             background-size: cover;
             font-family: 'UniversRegular', sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding-bottom: 80px;
+            display: flex; flex-direction: column; align-items: center; padding-bottom: 80px;
         }
 
         .spacer-top { height: 12vh; width: 100%; flex-shrink: 0; }
 
         .sign-container {
-            max-width: 650px;
-            width: 90%;
-            background-color: var(--sign-purple);
-            color: var(--sign-white);
-            border-radius: 12px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
-            border: 6px solid #333;
-            position: relative;
-            z-index: 10;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
+            max-width: 650px; width: 90%; background-color: var(--sign-purple); color: var(--sign-white);
+            border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.8); border: 6px solid #333;
+            display: flex; flex-direction: column; overflow: hidden;
         }
 
-        header { padding: 25px 20px; text-align: center; }
-        h1 { font-family: 'DisneyMagic', cursive; margin: 0; font-size: 3.2rem; color: var(--sign-white); text-shadow: 3px 3px 0px var(--sign-blue); }
-        .straight-ahead { font-family: 'UniversBold'; color: var(--sign-yellow); letter-spacing: 4px; font-size: 1.2rem; margin-top: 5px; }
+        header { padding: 20px; text-align: center; }
+        h1 { font-family: 'DisneyMagic', cursive; margin: 0; font-size: 3rem; color: var(--sign-white); text-shadow: 3px 3px 0px var(--sign-blue); }
+        .welcome-msg { font-family: 'UniversBold'; color: var(--sign-yellow); letter-spacing: 3px; font-size: 1.1rem; text-transform: uppercase; margin-top: 5px; }
 
-        .tabs { display: flex; background: rgba(0,0,0,0.4); border-top: 4px solid var(--sign-red); border-bottom: 4px solid var(--sign-red); }
-        .tab-btn { flex: 1; padding: 15px; border: none; background: none; color: white; font-family: 'UniversBold', sans-serif; cursor: pointer; text-transform: uppercase; font-size: 0.9rem; }
+        .tabs { display: flex; background: rgba(0,0,0,0.4); border-top: 4px solid var(--sign-red); border-bottom: 4px solid var(--sign-red); overflow-x: auto; }
+        .tab-btn { flex: 1; padding: 15px; border: none; background: none; color: white; font-family: 'UniversBold', sans-serif; cursor: pointer; text-transform: uppercase; font-size: 0.8rem; min-width: 90px; }
         .tab-btn.active { background: var(--sign-red); color: var(--sign-yellow); }
 
-        .tab-content { display: none; padding: 25px; }
+        .tab-content { display: none; padding: 20px; }
         .tab-content.active { display: block; }
 
-        .total-points-sign { font-family: 'UniversBold'; font-size: 2.5rem; color: var(--sign-yellow); text-align: center; margin-bottom: 20px; }
+        .total-points-sign { font-family: 'UniversBold'; font-size: 2.2rem; color: var(--sign-yellow); text-align: center; margin-bottom: 15px; }
         
-        .dashboard-contract-card {
-            background: white;
-            color: #333;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border-left: 12px solid var(--sign-blue);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            overflow: hidden;
-        }
-        
-        .card-header { padding: 12px 15px; background: #f8f9fa; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
-        .point-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; text-align: center; padding: 15px 5px; background: #fff; }
-        .point-box { border-right: 1px solid #eee; }
-        .point-box:last-child { border-right: none; }
-        .point-val { font-family: 'UniversBold'; font-size: 1.4rem; color: var(--sign-purple); display: block; }
-        .point-label { font-size: 0.6rem; color: #666; text-transform: uppercase; font-weight: bold; }
-
-        .progress-container { background: #eee; height: 10px; width: 100%; position: relative; }
-        .progress-fill { background: var(--sign-blue); height: 100%; transition: width 0.5s ease-in-out; }
+        /* Dashboard Card */
+        .dashboard-contract-card { background: white; color: #333; border-radius: 8px; margin-bottom: 15px; border-left: 12px solid var(--sign-blue); box-shadow: 0 4px 10px rgba(0,0,0,0.3); overflow: hidden; }
+        .card-header { padding: 10px 15px; background: #f8f9fa; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; font-weight: bold; }
+        .point-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; text-align: center; padding: 12px 5px; background: #fff; }
+        .point-val { font-family: 'UniversBold'; font-size: 1.3rem; color: var(--sign-purple); display: block; }
+        .point-label { font-size: 0.6rem; color: #666; text-transform: uppercase; }
+        .progress-container { background: #eee; height: 8px; width: 100%; }
+        .progress-fill { background: var(--sign-blue); height: 100%; }
         .progress-fill.warning { background: var(--sign-red); }
-        
-        .expiration-alert { background: #fff3cd; color: #856404; font-size: 0.7rem; padding: 8px; text-align: center; font-family: 'UniversBold'; border-top: 1px solid #ffeeba; }
+        .expiration-alert { background: #fff3cd; color: #856404; font-size: 0.65rem; padding: 6px; text-align: center; font-family: 'UniversBold'; }
 
-        .summary-card { background: white; color: #333; border-radius: 4px; margin-bottom: 15px; padding: 18px; border-left: 12px solid var(--sign-blue); }
-        .trip-card { background: var(--sign-yellow); color: #222; padding: 14px; border-radius: 4px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; font-family: 'UniversBold'; }
-        .footer-red { background-color: var(--sign-red); padding: 15px; text-align: center; font-family: 'UniversBold'; font-size: 1.1rem; color: var(--sign-yellow); letter-spacing: 2px; text-transform: uppercase; }
-        .sync-stamp { font-size: 0.6rem; color: rgba(255,255,255,0.5); text-align: center; margin-top: 5px; text-transform: none; }
-        input, select { width: 100%; padding: 12px; margin-bottom: 12px; box-sizing: border-box; font-family: 'UniversRegular'; font-size: 1rem; }
-        .used-input { width: 110px !important; padding: 8px !important; font-size: 1.2rem !important; text-align: center; font-weight: bold; }
-        .date-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .disney-button { background: var(--sign-yellow); color: #333; border: none; padding: 18px; font-family: 'UniversBold'; cursor: pointer; text-transform: uppercase; width: 100%; border-radius: 4px; font-size: 1rem; }
-        .sync-btn { background: var(--sign-red); color: white; border: 4px solid var(--sign-yellow); margin-top: 20px; }
+        /* Plans UI */
+        .plan-day-card { background: white; color: #333; border-radius: 8px; margin-bottom: 12px; padding: 12px; border-left: 10px solid var(--sign-red); }
+        .plan-day-card h4 { margin: 0 0 8px 0; color: var(--sign-purple); font-family: 'UniversBold'; border-bottom: 1px solid #eee; }
+        .plan-row { display: grid; grid-template-columns: 80px 1fr; gap: 10px; margin-bottom: 5px; align-items: center; font-size: 0.8rem; }
+        .plan-label-small { font-weight: bold; color: #777; }
+        .view-row { margin-bottom: 4px; border-bottom: 1px dashed #eee; padding-bottom: 2px; }
+
+        /* Global Elements */
+        .summary-card { background: white; color: #333; border-radius: 4px; margin-bottom: 12px; padding: 15px; border-left: 8px solid var(--sign-blue); }
+        .trip-card { background: var(--sign-yellow); color: #222; padding: 12px; border-radius: 4px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; font-family: 'UniversBold'; font-size: 0.9rem; }
+        .footer-red { background-color: var(--sign-red); padding: 12px; text-align: center; font-family: 'UniversBold'; font-size: 1rem; color: var(--sign-yellow); }
+        input, select, textarea { width: 100%; padding: 8px; margin-bottom: 5px; border-radius: 4px; border: 1px solid #ccc; font-family: 'UniversRegular'; box-sizing: border-box; }
+        .disney-button { background: var(--sign-yellow); color: #333; border: none; padding: 12px; font-family: 'UniversBold'; cursor: pointer; text-transform: uppercase; width: 100%; border-radius: 4px; margin-bottom: 8px; }
+        .sync-btn { background: var(--sign-red); color: white; border: 3px solid var(--sign-yellow); margin-top: 10px; }
+        .toggle-box { display: flex; gap: 5px; margin-bottom: 10px; }
+        .toggle-item { flex: 1; padding: 8px; text-align: center; background: rgba(0,0,0,0.2); color: white; cursor: pointer; border-radius: 4px; font-size: 0.7rem; font-family: 'UniversBold'; }
+        .toggle-item.active { background: var(--sign-yellow); color: #333; }
     </style>
 </head>
 <body>
@@ -100,11 +83,12 @@
 <div class="sign-container">
     <header>
         <h1>Dvc Point Tracker</h1>
-        <div class="straight-ahead">STRAIGHT AHEAD</div>
+        <div class="welcome-msg">WELCOME HOME DUNKERS</div>
     </header>
 
     <div class="tabs">
         <button class="tab-btn active" onclick="showTab('home')">Dashboard</button>
+        <button class="tab-btn" onclick="showTab('plans')">Plans</button>
         <button class="tab-btn" onclick="showTab('trips')">Trips</button>
         <button class="tab-btn" onclick="showTab('settings')">Contracts</button>
     </div>
@@ -112,84 +96,52 @@
     <div id="home" class="tab-content active">
         <div id="grandTotal" class="total-points-sign">TOTAL: 0 PTS</div>
         <div id="nextTripDisplay"></div>
-        <h3 style="border-bottom: 2px solid rgba(255,255,255,0.2); padding-bottom: 8px;">REMAINING BY CYCLE</h3>
+        <h3 style="border-bottom: 2px solid rgba(255,255,255,0.2); padding-bottom: 8px; font-size: 0.9rem;">REMAINING BY CYCLE</h3>
         <div id="contractSummary"></div>
     </div>
 
+    <div id="plans" class="tab-content">
+        <select id="planTripSelect" onchange="loadTripPlans()">
+            <option value="" disabled selected>Select Upcoming Trip</option>
+        </select>
+        <div id="planArea" style="display:none; margin-top:15px;">
+            <div class="toggle-box">
+                <div id="viewBtn" class="toggle-item active" onclick="setPlanMode('view')">VIEW MODE</div>
+                <div id="editBtn" class="toggle-item" onclick="setPlanMode('edit')">EDIT MODE</div>
+            </div>
+            <div id="planDayContainer"></div>
+            <button class="disney-button sync-btn" onclick="saveToCloud()">PUSH PLANS TO CLOUD</button>
+        </div>
+    </div>
+
     <div id="trips" class="tab-content">
-        <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 8px;">
-            <h3>ADD RESERVATION</h3>
+        <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px;">
             <input type="text" id="tripName" placeholder="Trip Name">
             <select id="tripResort">
                 <option value="" disabled selected>Select Resort</option>
                 <option value="Animal Kingdom Lodge">Animal Kingdom Lodge</option>
-                <option value="Aulani">Aulani</option>
-                <option value="Bay Lake Tower">Bay Lake Tower</option>
                 <option value="Beach Club">Beach Club</option>
-                <option value="BoardWalk">BoardWalk</option>
-                <option value="Boulder Ridge">Boulder Ridge</option>
-                <option value="Copper Creek">Copper Creek</option>
-                <option value="Grand Floridian">Grand Floridian</option>
-                <option value="Grand Californian">Grand Californian</option>
-                <option value="Hilton Head">Hilton Head</option>
                 <option value="Old Key West">Old Key West</option>
                 <option value="Polynesian">Polynesian</option>
                 <option value="Riviera">Riviera</option>
                 <option value="Saratoga Springs">Saratoga Springs</option>
-                <option value="Vero Beach">Vero Beach</option>
-                <option value="Villas at Disneyland Hotel">Villas at Disneyland Hotel</option>
             </select>
             <div class="date-row">
-                <div><small>Check-In</small><input type="date" id="checkIn"></div>
-                <div><small>Check-Out</small><input type="date" id="checkOut"></div>
+                <input type="date" id="checkIn">
+                <input type="date" id="checkOut">
             </div>
             <button class="disney-button" onclick="addTrip()">Add Trip</button>
-            <button class="disney-button sync-btn" onclick="saveToCloud()">PUSH TO DISNEY CLOUD</button>
+            <button class="disney-button sync-btn" onclick="saveToCloud()">PUSH TO CLOUD</button>
         </div>
-        <div id="tripManager"></div>
+        <div id="tripManager" style="margin-top:15px"></div>
     </div>
 
     <div id="settings" class="tab-content">
-        <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 8px; margin-bottom: 25px;">
-            <h3>ADD NEW CONTRACT</h3>
-            <select id="newResort">
-                <option value="" disabled selected>Select Resort</option>
-                <option value="Animal Kingdom Lodge">Animal Kingdom Lodge</option>
-                <option value="Aulani">Aulani</option>
-                <option value="Bay Lake Tower">Bay Lake Tower</option>
-                <option value="Beach Club">Beach Club</option>
-                <option value="BoardWalk">BoardWalk</option>
-                <option value="Boulder Ridge">Boulder Ridge</option>
-                <option value="Copper Creek">Copper Creek</option>
-                <option value="Grand Floridian">Grand Floridian</option>
-                <option value="Grand Californian">Grand Californian</option>
-                <option value="Hilton Head">Hilton Head</option>
-                <option value="Old Key West">Old Key West</option>
-                <option value="Polynesian">Polynesian</option>
-                <option value="Riviera">Riviera</option>
-                <option value="Saratoga Springs">Saratoga Springs</option>
-                <option value="Vero Beach">Vero Beach</option>
-                <option value="Villas at Disneyland Hotel">Villas at Disneyland Hotel</option>
-            </select>
-            <input type="number" id="newPoints" placeholder="Annual Pts">
-            <select id="newUY">
-                <option value="Feb">February Use Year</option>
-                <option value="Mar">March Use Year</option>
-                <option value="Apr">April Use Year</option>
-                <option value="Jun">June Use Year</option>
-                <option value="Aug">August Use Year</option>
-                <option value="Sep">September Use Year</option>
-                <option value="Oct">October Use Year</option>
-                <option value="Dec">December Use Year</option>
-            </select>
-            <button class="disney-button" onclick="addContract()">Save New Contract</button>
-        </div>
         <div id="contractEditor"></div>
-        <button class="disney-button sync-btn" onclick="saveToCloud()">PUSH TO DISNEY CLOUD</button>
+        <button class="disney-button sync-btn" onclick="saveToCloud()">PUSH TO CLOUD</button>
     </div>
 
     <div class="footer-red">
-        <div>THE MOST MAGICAL PLACE ON EARTH</div>
         <div id="lastSync" class="sync-stamp">Initializing Cloud...</div>
     </div>
 </div>
@@ -199,14 +151,17 @@
     const API_KEY = '$2a$10$B2lcgtW9TRoKhvXKDEHxWenp5jGdJL.a2op6oWw8yoVf5Pocmtu3.'; 
     const URL = 'https://api.jsonbin.io/v3/b/' + BIN_ID;
 
-    let data = { contracts: [], trips: [], lastSync: "" };
+    let data = { contracts: [], trips: [], plans: {}, lastSync: "" };
+    let planMode = 'view';
 
     async function init() {
         try {
             const res = await fetch(URL + '/latest', { headers: { 'X-Master-Key': API_KEY } });
             const cloud = await res.json();
             data = cloud.record || cloud;
+            if(!data.plans) data.plans = {};
             render();
+            updatePlanDropdown();
         } catch (e) {
             const backup = localStorage.getItem('dvc_data_final');
             if(backup) data = JSON.parse(backup);
@@ -221,36 +176,6 @@
         event.currentTarget.classList.add('active');
     }
 
-    function getUYExpiration(uyMonthStr) {
-        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-        const today = new Date();
-        const curYear = today.getFullYear();
-        const uyIdx = months.indexOf(uyMonthStr.substring(0,3));
-        let curUYYear = (today.getMonth() < uyIdx) ? curYear - 1 : curYear;
-        const expire = new Date(curUYYear + 1, uyIdx, 0);
-        return { 
-            bankedYear: curUYYear - 1, 
-            date: expire.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) 
-        };
-    }
-
-    function addContract() {
-        const res = document.getElementById('newResort').value;
-        const pts = parseInt(document.getElementById('newPoints').value);
-        const uy = document.getElementById('newUY').value;
-        if(!res || isNaN(pts)) return;
-        data.contracts.push({ id: Date.now(), resort: res, annual: pts, uy, banked: 0, borrowed: 0, used: 0 });
-        document.getElementById('newResort').selectedIndex = 0;
-        document.getElementById('newPoints').value = '';
-        render();
-    }
-
-    function updatePoints(id, field, val) {
-        const idx = data.contracts.findIndex(c => c.id === id);
-        data.contracts[idx][field] = parseInt(val) || 0;
-        render();
-    }
-
     function addTrip() {
         const name = document.getElementById('tripName').value;
         const resort = document.getElementById('tripResort').value;
@@ -258,89 +183,139 @@
         const end = document.getElementById('checkOut').value;
         if(!name || !resort || !start || !end) return;
         data.trips.push({ id: Date.now(), name, resort, start, end });
-        document.getElementById('tripName').value = '';
         render();
+        updatePlanDropdown();
     }
 
-    function deleteContract(id) { if(confirm("Delete?")) { data.contracts = data.contracts.filter(c => c.id !== id); render(); } }
-    function deleteTrip(id) { if(confirm("Delete?")) { data.trips = data.trips.filter(t => t.id !== id); render(); } }
+    function updatePlanDropdown() {
+        const sel = document.getElementById('planTripSelect');
+        sel.innerHTML = '<option value="" disabled selected>Select Upcoming Trip</option>';
+        data.trips.sort((a,b) => new Date(a.start) - new Date(b.start)).forEach(t => {
+            sel.innerHTML += `<option value="${t.id}">${t.name} (${t.start})</option>`;
+        });
+    }
+
+    function setPlanMode(mode) {
+        planMode = mode;
+        document.getElementById('viewBtn').classList.toggle('active', mode === 'view');
+        document.getElementById('editBtn').classList.toggle('active', mode === 'edit');
+        loadTripPlans();
+    }
+
+    function loadTripPlans() {
+        const tId = document.getElementById('planTripSelect').value;
+        if(!tId) return;
+        const trip = data.trips.find(t => t.id == tId);
+        const container = document.getElementById('planDayContainer');
+        document.getElementById('planArea').style.display = 'block';
+        container.innerHTML = '';
+
+        if(!data.plans[tId]) data.plans[tId] = {};
+
+        let start = new Date(trip.start + "T00:00:00");
+        let end = new Date(trip.end + "T00:00:00");
+
+        while(start <= end) {
+            const dateStr = start.toISOString().split('T')[0];
+            const dData = data.plans[tId][dateStr] || { park: 'Magic Kingdom', meal: '', time: '18:00', note: '' };
+            
+            if(planMode === 'edit') {
+                container.innerHTML += `
+                    <div class="plan-day-card">
+                        <h4>${start.toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'})}</h4>
+                        <div class="plan-row"><span class="plan-label-small">PARK</span><input type="text" value="${dData.park}" onchange="savePlanItem('${tId}','${dateStr}','park',this.value)"></div>
+                        <div class="plan-row"><span class="plan-label-small">MEAL</span><div style="display:flex;gap:5px"><input type="time" value="${dData.time}" onchange="savePlanItem('${tId}','${dateStr}','time',this.value)"><input type="text" placeholder="Restaurant" value="${dData.meal}" onchange="savePlanItem('${tId}','${dateStr}','meal',this.value)"></div></div>
+                        <textarea placeholder="Activities/Notes" onchange="savePlanItem('${tId}','${dateStr}','note',this.value)">${dData.note}</textarea>
+                    </div>`;
+            } else {
+                container.innerHTML += `
+                    <div class="plan-day-card">
+                        <h4>${start.toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'})}</h4>
+                        <div class="view-row"><b>🎡</b> ${dData.park}</div>
+                        ${dData.meal ? `<div class="view-row"><b>🍴</b> ${dData.time} - ${dData.meal}</div>` : ''}
+                        ${dData.note ? `<div class="view-row"><b>✨</b> ${dData.note}</div>` : ''}
+                    </div>`;
+            }
+            start.setDate(start.getDate() + 1);
+        }
+    }
+
+    function savePlanItem(tId, date, key, val) {
+        if(!data.plans[tId][date]) data.plans[tId][date] = {};
+        data.plans[tId][date][key] = val;
+        localStorage.setItem('dvc_data_final', JSON.stringify(data));
+    }
 
     async function saveToCloud() {
         const btns = document.querySelectorAll('.sync-btn');
-        btns.forEach(btn => btn.innerText = "SYNCING...");
+        btns.forEach(b => b.innerText = "SYNCING...");
         data.lastSync = new Date().toLocaleString();
         try {
             await fetch(URL, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY }, body: JSON.stringify(data) });
             localStorage.setItem('dvc_data_final', JSON.stringify(data));
-            btns.forEach(btn => btn.innerText = "SUCCESS! ✅");
-        } catch (e) { btns.forEach(btn => btn.innerText = "FAIL - LOCAL ONLY"); }
-        setTimeout(() => { btns.forEach(btn => btn.innerText = "PUSH TO DISNEY CLOUD"); render(); }, 2000);
+            btns.forEach(b => b.innerText = "SUCCESS! ✅");
+        } catch (e) { btns.forEach(b => b.innerText = "RETRY SYNC"); }
+        setTimeout(() => { btns.forEach(b => b.innerText = "PUSH TO CLOUD"); render(); }, 2000);
     }
 
     function render() {
         const summary = document.getElementById('contractSummary');
         const editor = document.getElementById('contractEditor');
         const nextTripDiv = document.getElementById('nextTripDisplay');
-        const tripMan = document.getElementById('tripManager');
         const syncStamp = document.getElementById('lastSync');
         let totalPts = 0;
 
-        summary.innerHTML = ''; editor.innerHTML = ''; nextTripDiv.innerHTML = ''; tripMan.innerHTML = '';
+        summary.innerHTML = ''; editor.innerHTML = ''; nextTripDiv.innerHTML = '';
         syncStamp.innerText = data.lastSync ? "Cloud Updated: " + data.lastSync : "Check Sync Status";
 
         data.contracts.forEach(c => {
-            // THE MATH LOGIC
-            // 1. Banked points: Total entered minus any Used points
-            let remainingBanked = Math.max(0, (c.banked || 0) - (c.used || 0));
-            
-            // 2. Used points remaining after clearing out Banked
-            let leftoverUsed = Math.max(0, (c.used || 0) - (c.banked || 0));
-            
-            // 3. Current points: Annual minus leftover used points
-            let remainingCurrent = Math.max(0, c.annual - leftoverUsed);
-            
-            // 4. Future points: Annual minus any points borrowed into Current
-            let remainingFuture = Math.max(0, c.annual - (c.borrowed || 0));
-            
-            // Grand total for this specific contract
-            let contractBalance = remainingBanked + remainingCurrent + remainingFuture;
-            totalPts += contractBalance;
+            let used = (c.used || 0);
+            let remBanked = Math.max(0, (c.banked || 0) - used);
+            used = Math.max(0, used - (c.banked || 0));
+            let remCur = Math.max(0, c.annual - used);
+            let remFut = Math.max(0, c.annual - (c.borrowed || 0));
+            totalPts += (remBanked + remCur + remFut);
 
-            const uyInfo = getUYExpiration(c.uy);
-            
-            // Progress Bar Logic (Based on combined Banked + Current buckets)
-            const availableInCurrentBucket = (c.banked || 0) + c.annual;
-            const usePercent = availableInCurrentBucket > 0 ? Math.min(((c.used || 0) / availableInCurrentBucket) * 100, 100) : 0;
-            const barClass = usePercent > 90 ? "progress-fill warning" : "progress-fill";
+            const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            const today = new Date();
+            const uyIdx = months.indexOf(c.uy.substring(0,3));
+            let curUYYear = (today.getMonth() < uyIdx) ? today.getFullYear() - 1 : today.getFullYear();
+            const expire = new Date(curUYYear + 1, uyIdx, 0).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
 
             summary.innerHTML += `
                 <div class="dashboard-contract-card">
-                    <div class="card-header"><strong>${c.resort}</strong><small>${c.uy.toUpperCase()} UY</small></div>
+                    <div class="card-header"><span>${c.resort}</span><small>${c.uy.toUpperCase()} UY</small></div>
                     <div class="point-grid">
-                        <div class="point-box"><span class="point-val">${remainingBanked}</span><span class="point-label">Banked</span></div>
-                        <div class="point-box"><span class="point-val">${remainingCurrent}</span><span class="point-label">Current</span></div>
-                        <div class="point-box"><span class="point-val">${remainingFuture}</span><span class="point-label">Future</span></div>
+                        <div class="point-box"><span class="point-val">${remBanked}</span><span class="point-label">Banked</span></div>
+                        <div class="point-box"><span class="point-val">${remCur}</span><span class="point-label">Current</span></div>
+                        <div class="point-box"><span class="point-val">${remFut}</span><span class="point-label">Future</span></div>
                     </div>
-                    <div class="progress-container"><div class="${barClass}" style="width: ${usePercent}%"></div></div>
-                    <div class="expiration-alert">⚠️ ${uyInfo.bankedYear} BANKED POINTS EXPIRE ${uyInfo.date.toUpperCase()}</div>
+                    <div class="expiration-alert">⚠️ ${curUYYear - 1} BANKED POINTS EXPIRE ${expire.toUpperCase()}</div>
                 </div>`;
 
-            editor.innerHTML += `<div class="summary-card"><div style="display:flex; justify-content:space-between"><strong>${c.resort}</strong><span style="color:red; cursor:pointer" onclick="deleteContract(${c.id})">Delete</span></div><small>${c.uy.toUpperCase()}</small><div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:5px; font-size:0.7rem; margin-top:10px"><span>Banked<br><input type="number" value="${c.banked}" onchange="updatePoints(${c.id}, 'banked', this.value)"></span><span>Annual<br><input type="number" value="${c.annual}" disabled></span><span>Borrow<br><input type="number" value="${c.borrowed}" onchange="updatePoints(${c.id}, 'borrowed', this.value)"></span></div><div style="text-align:right; margin-top:10px;">Used: <input type="number" class="used-input" value="${c.used}" onchange="updatePoints(${c.id}, 'used', this.value)"></div></div>`;
+            editor.innerHTML += `<div class="summary-card"><div style="display:flex; justify-content:space-between"><strong>${c.resort}</strong><span style="color:red; cursor:pointer" onclick="deleteContract(${c.id})">Delete</span></div><div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:5px; margin-top:10px"><span>Banked<br><input type="number" value="${c.banked}" onchange="updatePoints(${c.id}, 'banked', this.value)"></span><span>Annual<br><input type="number" value="${c.annual}" disabled></span><span>Borrow<br><input type="number" value="${c.borrowed}" onchange="updatePoints(${c.id}, 'borrowed', this.value)"></span></div><div style="text-align:right; margin-top:10px;">Used: <input type="number" class="used-input" style="width:100px; text-align:center; font-weight:bold" value="${c.used}" onchange="updatePoints(${c.id}, 'used', this.value)"></div></div>`;
         });
 
         document.getElementById('grandTotal').innerText = `TOTAL: ${totalPts} PTS`;
-        const sortedTrips = data.trips.sort((a,b) => new Date(a.start) - new Date(b.start));
-        const today = new Date();
-
-        sortedTrips.forEach((t, index) => {
-            const start = new Date(t.start);
-            const end = new Date(t.end);
-            let status = (today < start) ? `${Math.ceil((start - today) / (1000*60*60*24))} DAYS UNTIL` : (today <= end ? "WELCOME HOME!" : "COMPLETED");
-            const tripHTML = `<div class="trip-card"><div><strong>${t.name}</strong><br><small>${t.resort}<br>${t.start} to ${t.end}</small></div><div>${status}</div></div>`;
-            if (index === 0 && today <= end) nextTripDiv.innerHTML = tripHTML;
-            tripMan.innerHTML += `<div class="trip-card"><div><strong>${t.name}</strong><br><small>${t.resort}</small></div><button onclick="deleteTrip(${t.id})" style="background:none; border:none; color:red; font-weight:bold">X</button></div>`;
+        const sorted = data.trips.sort((a,b) => new Date(a.start) - new Date(b.start));
+        const today2 = new Date();
+        sorted.forEach((t, index) => {
+            const s = new Date(t.start + "T00:00:00");
+            const e = new Date(t.end + "T00:00:00");
+            let status = (today2 < s) ? `${Math.ceil((s - today2) / (1000*60*60*24))} DAYS UNTIL` : (today2 <= e ? "WELCOME HOME!" : "COMPLETED");
+            if (index === 0 && today2 <= e) nextTripDiv.innerHTML = `<div class="trip-card"><div><strong>${t.name}</strong><br><small>${t.resort}</small></div><div>${status}</div></div>`;
+            document.getElementById('tripManager').innerHTML += `<div class="trip-card"><div>${t.name}</div><button onclick="deleteTrip(${t.id})" style="background:none;border:none;color:red;font-weight:bold">X</button></div>`;
         });
     }
+
+    function updatePoints(id, key, val) {
+        const idx = data.contracts.findIndex(c => c.id === id);
+        data.contracts[idx][key] = parseInt(val) || 0;
+        render();
+    }
+
+    function deleteContract(id) { if(confirm("Delete?")) { data.contracts = data.contracts.filter(c => c.id !== id); render(); } }
+    function deleteTrip(id) { if(confirm("Delete?")) { data.trips = data.trips.filter(t => t.id !== id); render(); } }
     init();
 </script>
 </body>
