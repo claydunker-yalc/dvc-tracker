@@ -75,11 +75,12 @@
         .point-box { border-right: 1px solid #eee; }
         .point-box:last-child { border-right: none; }
         .point-val { font-family: 'UniversBold'; font-size: 1.4rem; color: var(--sign-purple); display: block; }
-        .point-label { font-size: 0.65rem; color: #666; text-transform: uppercase; }
+        .point-label { font-size: 0.6rem; color: #666; text-transform: uppercase; font-weight: bold; }
 
         /* Progress Bar */
-        .progress-container { background: #eee; height: 8px; width: 100%; position: relative; }
+        .progress-container { background: #eee; height: 10px; width: 100%; position: relative; }
         .progress-fill { background: var(--sign-blue); height: 100%; transition: width 0.5s ease-in-out; }
+        .progress-fill.warning { background: var(--sign-red); }
         
         .expiration-alert { background: #fff3cd; color: #856404; font-size: 0.7rem; padding: 8px; text-align: center; font-family: 'UniversBold'; border-top: 1px solid #ffeeba; }
 
@@ -102,7 +103,7 @@
 <div class="sign-container">
     <header>
         <h1>Dvc Point Tracker</h1>
-        <div class="straight-ahead">WELCOME HOME DUNKER FAMILY</div>
+        <div class="straight-ahead">STRAIGHT AHEAD</div>
     </header>
 
     <div class="tabs">
@@ -114,7 +115,7 @@
     <div id="home" class="tab-content active">
         <div id="grandTotal" class="total-points-sign">TOTAL: 0 PTS</div>
         <div id="nextTripDisplay"></div>
-        <h3 style="border-bottom: 2px solid rgba(255,255,255,0.2); padding-bottom: 8px;">CONTRACTS AT A GLANCE</h3>
+        <h3 style="border-bottom: 2px solid rgba(255,255,255,0.2); padding-bottom: 8px;">REMAINING BY CYCLE</h3>
         <div id="contractSummary"></div>
     </div>
 
@@ -285,33 +286,51 @@
         const nextTripDiv = document.getElementById('nextTripDisplay');
         const tripMan = document.getElementById('tripManager');
         const syncStamp = document.getElementById('lastSync');
-        let total = 0;
+        let totalPts = 0;
 
         summary.innerHTML = ''; editor.innerHTML = ''; nextTripDiv.innerHTML = ''; tripMan.innerHTML = '';
         syncStamp.innerText = data.lastSync ? "Cloud Updated: " + data.lastSync : "Check Sync Status";
 
         data.contracts.forEach(c => {
-            const avail = (c.annual + (c.banked || 0) + (c.borrowed || 0)) - (c.used || 0);
-            total += avail;
+            let usedTracker = (c.used || 0);
+            
+            // Logic: Subtract from Banked First
+            let remainingBanked = Math.max(0, (c.banked || 0) - usedTracker);
+            usedTracker = Math.max(0, usedTracker - (c.banked || 0));
+
+            // Subtract from Current (Annual) Second
+            let remainingCurrent = Math.max(0, c.annual - usedTracker);
+            usedTracker = Math.max(0, usedTracker - c.annual);
+
+            // Subtract from Future (Borrowing) Third
+            let remainingFuture = Math.max(0, c.annual - usedTracker);
+            
+            let currentContractTotal = remainingBanked + remainingCurrent + remainingFuture;
+            totalPts += currentContractTotal;
+
             const uyInfo = getUYExpiration(c.uy);
-            const usePercent = Math.min(((c.used || 0) / (c.annual + (c.banked || 0))) * 100, 100);
+            
+            // Progress Bar Logic (Based on how much of BANKED + CURRENT is gone)
+            const availableToday = (c.banked || 0) + c.annual;
+            const usePercent = availableToday > 0 ? Math.min(((c.used || 0) / availableToday) * 100, 100) : 0;
+            const barClass = usePercent > 90 ? "progress-fill warning" : "progress-fill";
 
             summary.innerHTML += `
                 <div class="dashboard-contract-card">
                     <div class="card-header"><strong>${c.resort}</strong><small>${c.uy.toUpperCase()} UY</small></div>
                     <div class="point-grid">
-                        <div class="point-box"><span class="point-val">${c.banked || 0}</span><span class="point-label">Banked</span></div>
-                        <div class="point-box"><span class="point-val">${c.annual}</span><span class="point-label">Current</span></div>
-                        <div class="point-box"><span class="point-val">${c.annual}</span><span class="point-label">Future</span></div>
+                        <div class="point-box"><span class="point-val">${remainingBanked}</span><span class="point-label">Banked</span></div>
+                        <div class="point-box"><span class="point-val">${remainingCurrent}</span><span class="point-label">Current</span></div>
+                        <div class="point-box"><span class="point-val">${remainingFuture}</span><span class="point-label">Future</span></div>
                     </div>
-                    <div class="progress-container"><div class="progress-fill" style="width: ${usePercent}%"></div></div>
+                    <div class="progress-container"><div class="${barClass}" style="width: ${usePercent}%"></div></div>
                     <div class="expiration-alert">⚠️ ${uyInfo.bankedYear} BANKED POINTS EXPIRE ${uyInfo.date.toUpperCase()}</div>
                 </div>`;
 
             editor.innerHTML += `<div class="summary-card"><div style="display:flex; justify-content:space-between"><strong>${c.resort}</strong><span style="color:red; cursor:pointer" onclick="deleteContract(${c.id})">Delete</span></div><small>${c.uy.toUpperCase()}</small><div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:5px; font-size:0.7rem; margin-top:10px"><span>Banked<br><input type="number" value="${c.banked}" onchange="updatePoints(${c.id}, 'banked', this.value)"></span><span>Annual<br><input type="number" value="${c.annual}" disabled></span><span>Borrow<br><input type="number" value="${c.borrowed}" onchange="updatePoints(${c.id}, 'borrowed', this.value)"></span></div><div style="text-align:right; margin-top:10px;">Used: <input type="number" class="used-input" value="${c.used}" onchange="updatePoints(${c.id}, 'used', this.value)"></div></div>`;
         });
 
-        document.getElementById('grandTotal').innerText = `TOTAL: ${total} PTS`;
+        document.getElementById('grandTotal').innerText = `TOTAL: ${totalPts} PTS`;
         const sortedTrips = data.trips.sort((a,b) => new Date(a.start) - new Date(b.start));
         const today = new Date();
 
