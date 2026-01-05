@@ -819,6 +819,59 @@
         return credits;
     }
 
+    // Resort logo mapping - grouped similar resorts to use same logo
+    const resortLogos = {
+        // Deluxe Resorts
+        "Animal Kingdom Lodge": "resorts/animal_kingdom_lodge.png",
+        "Animal Kingdom Villas – Jambo": "resorts/animal_kingdom_lodge.png",
+        "Animal Kingdom Villas – Kidani": "resorts/animal_kingdom_lodge.png",
+        "Bay Lake Tower": "resorts/contemporary.png",
+        "Beach Club": "resorts/beach_club.png",
+        "Beach Club Villas": "resorts/beach_club.png",
+        "BoardWalk Inn": "resorts/boardwalk.png",
+        "BoardWalk Villas": "resorts/boardwalk.png",
+        "Boulder Ridge": "resorts/wilderness_lodge.png",
+        "Copper Creek": "resorts/wilderness_lodge.png",
+        "Contemporary": "resorts/contemporary.png",
+        "Grand Floridian": "resorts/grand_floridian.png",
+        "Grand Floridian Villas": "resorts/grand_floridian.png",
+        "Old Key West": "resorts/old_key_west.png",
+        "Polynesian": "resorts/polynesian.png",
+        "Polynesian Villas": "resorts/polynesian.png",
+        "Wilderness Lodge": "resorts/wilderness_lodge.png",
+        "Yacht Club": "resorts/yacht_club.png",
+        
+        // Moderate Resorts
+        "Caribbean Beach": "resorts/caribbean_beach.png",
+        "Coronado Springs": "resorts/coronado_springs.png",
+        "Port Orleans – French Quarter": "resorts/port_orleans_french.png",
+        "Port Orleans – Riverside": "resorts/port_orleans_riverside.png",
+        
+        // DVC Resorts
+        "Riviera": "resorts/riviera.png",
+        "Saratoga Springs": "resorts/saratoga_springs.png",
+        
+        // Value Resorts
+        "All-Star Movies": "resorts/all_star_movies.png",
+        "All-Star Music": "resorts/all_star_music.png",
+        "All-Star Sports": "resorts/all_star_sports.png",
+        "Art of Animation": "resorts/art_of_animation.png",
+        "Pop Century": "resorts/pop_century.png",
+        
+        // Other
+        "Fort Wilderness Cabins": "resorts/fort_wilderness.png"
+    };
+
+    // Park logo mapping
+    const parkLogos = {
+        "Magic Kingdom": "parks/magic_kingdom.png",
+        "EPCOT": "parks/epcot.png", 
+        "Hollywood Studios": "parks/hollywood_studios.png",
+        "Animal Kingdom": "parks/animal_kingdom.png",
+        "Blizzard Beach": "parks/blizzard_beach.png",
+        "Typhoon Lagoon": "parks/typhoon_lagoon.png"
+    };
+
     function getDiningPlanUsage(tripId) {
         // Always recalculate from existing reservations to ensure accuracy
         const usage = {
@@ -830,7 +883,7 @@
         
         if (!data.plans[tripId]) return usage;
         
-        // Go through all plans for this trip and sum up dining credit usage
+        // Dining credit lookup mapping
         Object.keys(data.plans[tripId]).forEach(dateKey => {
             if (dateKey.endsWith('_acts')) {
                 const activities = data.plans[tripId][dateKey];
@@ -1039,10 +1092,31 @@
             const config = plans.days?.[ds] || { type: '', location: '' };
             
             html += `<div class="plan-day-card" style="margin-bottom: 15px;">`;
-            html += `<h4>${start.toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'})}</h4>`;
+            html += `<div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                <div style="flex: 1;">
+                    <h4 style="margin: 0;">${start.toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'})}</h4>`;
             
             if(config.type && config.location) {
                 html += `<div class="view-theme-label">${config.type === 'Park Day' ? '🎡' : '🏊'} ${config.location}</div>`;
+            }
+            
+            html += `</div>`;
+            
+            // Add resort logo container for resort days
+            if(config.type === 'Resort Day' && resortLogos[config.location]) {
+                console.log('Resort Day detected:', config.location);
+                console.log('Logo path:', resortLogos[config.location]);
+                html += `<div class="resort-logo-container" style="text-align: right; padding: 5px; background: rgba(255,255,255,0.1); border-radius: 8px; min-width: 140px; margin-top: -5px;">
+                    <img src="${resortLogos[config.location]}" alt="${config.location}" style="max-height: 100px; max-width: 200px; object-fit: contain;" onerror="this.style.display='none'; console.log('Resort logo not found:', '${config.location}')">
+                </div>`;
+            } else if(config.type === 'Park Day' && parkLogos[config.location]) {
+                console.log('Park Day detected:', config.location);
+                console.log('Logo path:', parkLogos[config.location]);
+                html += `<div class="park-logo-container" style="text-align: right; padding: 5px; background: rgba(255,255,255,0.1); border-radius: 8px; min-width: 140px; margin-top: -5px;">
+                    <img src="${parkLogos[config.location]}" alt="${config.location}" style="max-height: 100px; max-width: 200px; object-fit: contain;" onerror="this.style.display='none'; console.log('Park logo not found:', '${config.location}')">
+                </div>`;
+            } else {
+                console.log('No logo - Type:', config.type, 'Location:', config.location);
             }
             
             let autoLabel = (ds === shareData.tripStart) ? `🏨 Checking into ${shareData.resort}` : 
@@ -1050,9 +1124,6 @@
             html += `<div class="auto-tag">${autoLabel}</div>`;
 
             acts.sort((a,b) => (a.start || "").localeCompare(b.start || "")).forEach((a, i) => {
-                console.log('Processing activity:', a);
-                console.log('diningCreditsUsed:', a.diningCreditsUsed);
-                
                 let eventTypeClass = '';
                 if(a.type === 'Dining') {
                     eventTypeClass = 'event-dining';
@@ -1070,14 +1141,13 @@
                 // Add credit allocation note
                 const creditNote = a.diningCreditsUsed ? `<br><small style="color: #6c757d; font-style: italic;">${a.diningCreditsUsed.type === 'tableService' ? '🍽️' : a.diningCreditsUsed.type === 'quickService' ? '🍔' : '🥨'} ${a.diningCreditsUsed.count} ${a.diningCreditsUsed.type.replace('quickService', 'Quick-Service').replace('tableService', 'Table-Service').replace('snack', 'Snack')} credit${a.diningCreditsUsed.count > 1 ? 's' : ''}</small>` : '';
                 
-                console.log('Generated creditNote:', creditNote);
-                
                 html += `<div class="view-item">
                     <div class="view-time">${formatTime(a.start)}${a.end ? ' - ' + formatTime(a.end) : ''}</div>
                     <div class="view-desc"><strong>${a.selection || a.desc}</strong><br><small class="${eventTypeClass}">${a.type}</small>${diningIcon}${creditNote}</div>
                 </div>`;
             });
             
+            console.log('Processed day:', ds, 'Activities:', acts.length);
             html += `</div>`;
             start.setDate(start.getDate() + 1);
         }
@@ -1548,11 +1618,34 @@
             
             let card = document.createElement('div');
             card.className = 'plan-day-card';
-            let html = `<h4>${start.toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'})}</h4>`;
+            let html = `<div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                <div style="flex: 1;">
+                    <h4 style="margin: 0;">${start.toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'})}</h4>`;
             
             if(config.type && config.location) {
                 html += `<div class="view-theme-label">${config.type === 'Park Day' ? '🎡' : '🏊'} ${config.location}</div>`;
             }
+            
+            html += `</div>`;
+            
+            // Add resort logo container for resort days
+            if(config.type === 'Resort Day' && resortLogos[config.location]) {
+                console.log('Resort Day detected:', config.location);
+                console.log('Logo path:', resortLogos[config.location]);
+                html += `<div class="resort-logo-container" style="text-align: right; padding: 5px; background: rgba(255,255,255,0.1); border-radius: 8px; min-width: 140px; margin-top: -5px;">
+                    <img src="${resortLogos[config.location]}" alt="${config.location}" style="max-height: 100px; max-width: 200px; object-fit: contain;" onerror="this.style.display='none'; console.log('Resort logo not found:', '${config.location}')">
+                </div>`;
+            } else if(config.type === 'Park Day' && parkLogos[config.location]) {
+                console.log('Park Day detected:', config.location);
+                console.log('Logo path:', parkLogos[config.location]);
+                html += `<div class="park-logo-container" style="text-align: right; padding: 5px; background: rgba(255,255,255,0.1); border-radius: 8px; min-width: 140px; margin-top: -5px;">
+                    <img src="${parkLogos[config.location]}" alt="${config.location}" style="max-height: 100px; max-width: 200px; object-fit: contain;" onerror="this.style.display='none'; console.log('Park logo not found:', '${config.location}')">
+                </div>`;
+            } else {
+                console.log('No logo - Type:', config.type, 'Location:', config.location);
+            }
+            
+            html += `</div>`;
             
             let autoLabel = (ds === trip.start) ? `🏨 Checking into ${trip.resort}` : 
                             (ds === trip.end) ? `🏨 Checking out of ${trip.resort}` : `🏨 Staying at ${trip.resort}`;
